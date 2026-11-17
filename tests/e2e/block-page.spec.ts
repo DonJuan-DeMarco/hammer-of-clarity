@@ -56,7 +56,10 @@ test('redirects can be edited, never all removed, and a link opens in the same t
   await add.getByPlaceholder('https://').fill('https://example.org/book');
   await add.getByRole('button', { name: 'Add' }).click();
   await expect(items).toHaveCount(4);
-  for (let i = 0; i < 3; i++) await items.first().getByRole('button', { name: 'Remove' }).click();
+  for (let left = 3; left > 0; left--) {
+    await items.first().getByRole('button', { name: 'Remove' }).click();
+    await expect(items).toHaveCount(left);
+  }
   await expect(items).toHaveCount(1);
   await expect(items).toHaveText(/Read my book/);
 

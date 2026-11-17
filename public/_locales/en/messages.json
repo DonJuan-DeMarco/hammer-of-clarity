@@ -278,5 +278,110 @@
         "example": "example.com"
       }
     }
+  },
+  "settingsLists": {
+    "message": "Block lists"
+  },
+  "listsRefreshLabel": {
+    "message": "Keep the adult and gambling lists up to date"
+  },
+  "listsRefreshHint": {
+    "message": "Once a week, the latest public lists are downloaded from their maintainers, OISD and HaGeZi. Nothing about you is sent. Turn this off to stay fully offline."
+  },
+  "listsLastUpdated": {
+    "message": "Last updated $TIME$.",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Tue 24 Nov, 14:05"
+      }
+    }
+  },
+  "listsBundled": {
+    "message": "Using the lists that came with the extension."
+  },
+  "onboardingWelcomeTitle": {
+    "message": "Welcome to Hammer of Clarity"
+  },
+  "onboardingWelcomeBody": {
+    "message": "Blocking a site takes one click. Unblocking takes a day and your own words, on purpose: long enough for an urge to pass."
+  },
+  "onboardingStart": {
+    "message": "Set up my walls"
+  },
+  "onboardingCategoriesTitle": {
+    "message": "What do you want to keep out?"
+  },
+  "onboardingCategoriesBody": {
+    "message": "Pick any you like, or none for now. You can also block single sites from the toolbar at any time."
+  },
+  "onboardingCategoriesNote": {
+    "message": "Turning these off later takes time."
+  },
+  "onboardingTurnOnContinue": {
+    "message": "Turn on and continue"
+  },
+  "onboardingSkipForNow": {
+    "message": "Skip for now"
+  },
+  "onboardingRedirectsTitle": {
+    "message": "What will you do instead?"
+  },
+  "onboardingRedirectsBody": {
+    "message": "When you hit a wall, one of these is offered. Keep the suggestions or make them your own."
+  },
+  "onboardingContinue": {
+    "message": "Continue"
+  },
+  "onboardingIncognitoTitle": {
+    "message": "Cover incognito windows too"
+  },
+  "onboardingIncognitoBody": {
+    "message": "Chrome does not run extensions in incognito unless you allow it, so without this every wall has a side door. Only you can switch it on."
+  },
+  "onboardingIncognitoHow": {
+    "message": "Open the setting, switch on \"Allow in Incognito\", then come back to this tab."
+  },
+  "onboardingIncognitoOn": {
+    "message": "Incognito windows are covered."
+  },
+  "onboardingFinish": {
+    "message": "Finish setup"
+  },
+  "onboardingDoneTitle": {
+    "message": "Your walls are up."
+  },
+  "onboardingDoneBody": {
+    "message": "To block the site you are on, click the hammer in the toolbar. Settings are there too."
+  },
+  "onboardingClose": {
+    "message": "Close this tab"
+  },
+  "popupFinishSetup": {
+    "message": "Finish setup"
+  },
+  "creditsTitle": {
+    "message": "Credits and licences"
+  },
+  "creditsLicence": {
+    "message": "Hammer of Clarity is free software under the GNU General Public License, version 3."
+  },
+  "creditsSource": {
+    "message": "Its source code, including the full licence text, is published with the extension."
+  },
+  "creditsLists": {
+    "message": "Block lists"
+  },
+  "creditsListsHint": {
+    "message": "The adult and gambling categories use these community-maintained lists. Thank you to their maintainers."
+  },
+  "creditsSourceLink": {
+    "message": "source"
+  },
+  "creditsSoftware": {
+    "message": "Software"
+  },
+  "settingsCredits": {
+    "message": "Credits and licences"
   }
 }

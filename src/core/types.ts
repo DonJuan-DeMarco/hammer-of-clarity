@@ -69,4 +69,6 @@ export interface Attempt {
 export interface ListMeta {
   refreshEnabled: boolean;
   lastRefreshedAt?: number;
+  /** Downloaded lists currently installed as dynamic rules, by category. */
+  installed?: Partial<Record<'adult' | 'gambling', { domains: number; at: number }>>;
 }

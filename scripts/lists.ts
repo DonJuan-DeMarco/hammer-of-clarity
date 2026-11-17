@@ -8,16 +8,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parseDomainList } from '../src/core/lists';
+import { LIST_SOURCES } from '../src/core/refresh';
 import { listRulesetRule, type ListCategoryId } from '../src/core/rules';
-
-/** Sources (D20). Both GPLv3; credited in the extension (ticket 13). */
-export const LIST_SOURCES: Record<ListCategoryId, { url: string; minimumDomains: number }> = {
-  adult: { url: 'https://nsfw.oisd.nl/domainswild2', minimumDomains: 100_000 },
-  gambling: {
-    url: 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/gambling.medium-onlydomains.txt',
-    minimumDomains: 20_000,
-  },
-};
 
 const CACHE_DIR = path.resolve('.cache/lists');
 

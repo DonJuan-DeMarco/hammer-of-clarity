@@ -13,6 +13,8 @@ import {
   sameTarget,
 } from './removal';
 import { acknowledgeGraduations, ATTEMPT_WINDOW_MS, graduateEligible } from './graduation';
+import { recordRefreshedList, setListRefresh } from './refresh';
+import type { ListCategoryId } from './rules';
 import { acknowledgeResets, applyIncognitoStatus, resetAll } from './tamper';
 import type { Block, CategoryId, RemovalTarget, State } from './types';
 
@@ -39,7 +41,12 @@ export type Command =
   | { type: 'acknowledgeResets' }
   /** Daily, and whenever the popup opens. */
   | { type: 'checkGraduation' }
-  | { type: 'acknowledgeGraduations' };
+  | { type: 'acknowledgeGraduations' }
+  /** A downloaded list was installed as a dynamic rule (ticket 06). */
+  | { type: 'listRefreshed'; category: ListCategoryId; domains: number }
+  | { type: 'setListRefresh'; enabled: boolean }
+  /** The last step of first-run setup. Needs incognito access (D13). */
+  | { type: 'completeOnboarding' };
 
 export type CommandResult =
   | { ok: true; blockId?: string; requestId?: string }
@@ -55,7 +62,8 @@ export type CommandResult =
         | 'notFound'
         | 'invalidRequest'
         | 'notReady'
-        | 'wrongText';
+        | 'wrongText'
+        | 'incognitoRequired';
     };
 
 
@@ -82,6 +90,14 @@ export function reduce(original: State, command: Command, now: number, newId: Id
       return { state: graduateEligible(state, now), result: { ok: true } };
     case 'acknowledgeGraduations':
       return { state: acknowledgeGraduations(state), result: { ok: true } };
+    case 'listRefreshed':
+      return { state: recordRefreshedList(state, command.category, command.domains, now), result: { ok: true } };
+    case 'completeOnboarding':
+      if (state.onboardingComplete) return { state, result: { ok: true } };
+      if (!state.incognitoWasAllowed) return fail(state, 'incognitoRequired');
+      return { state: { ...state, onboardingComplete: true }, result: { ok: true } };
+    case 'setListRefresh':
+      return { state: setListRefresh(state, command.enabled), result: { ok: true } };
     case 'requestRemoval': {
       const target = resolveTarget(state, command.target);
       if (!target) return fail(state, 'notFound');
