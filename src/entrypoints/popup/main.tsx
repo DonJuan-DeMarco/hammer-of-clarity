@@ -4,9 +4,12 @@ import { browser } from 'wxt/browser';
 import { targetFromUrl, type UrlTarget } from '../../core/domain';
 import { liveRequests } from '../../core/removal';
 import { stageFor, type Stage } from '../../core/stages';
-import type { CategoryId } from '../../core/types';
+import type { CategoryId, State } from '../../core/types';
 import { t, type MessageKey } from '../../adapters/i18n';
+import { isIncognitoAllowed, openIncognitoSetting } from '../../adapters/lifecycle';
 import { sendCommand } from '../../adapters/messages';
+import { loadState } from '../../adapters/storage';
+import { ResetNotice } from '../../ui/ResetNotice';
 import { CATEGORY_NAMES } from '../../ui/categoryNames';
 import { StageBadge } from '../../ui/StageBadge';
 import { useAppState } from '../../ui/useAppState';
@@ -40,6 +43,7 @@ function Popup() {
   if (!tab?.target) {
     return (
       <main>
+        <Status />
         <p>{t('popupNotAWebsite')}</p>
         <Walls />
         <SettingsLink />
@@ -65,6 +69,7 @@ function Popup() {
 
   return (
     <main>
+      <Status />
       <p data-testid="domain">{target.domain}</p>
       {target.path && (
         <label>
@@ -112,6 +117,37 @@ function Walls() {
         ))}
       </ul>
     </section>
+  );
+}
+
+/**
+ * Checks incognito access on every open (D13) before showing any reset message, so a reset
+ * caused by that very check is shown now rather than next time.
+ */
+function Status() {
+  const [checked, setChecked] = useState<{ allowed: boolean; state: State } | null>(null);
+
+  useEffect(() => {
+    void (async () => {
+      const allowed = await isIncognitoAllowed();
+      await sendCommand({ type: 'incognitoStatus', allowed });
+      setChecked({ allowed, state: await loadState() });
+    })();
+  }, []);
+
+  if (!checked) return null;
+  return (
+    <>
+      {!checked.allowed && (
+        <section class="incognito-warning" role="alert" data-testid="incognito-warning">
+          <p>{t('incognitoWarning')}</p>
+          <button type="button" onClick={() => void openIncognitoSetting().then(() => window.close())}>
+            {t('incognitoOpenSetting')}
+          </button>
+        </section>
+      )}
+      <ResetNotice state={checked.state} />
+    </>
   );
 }
 

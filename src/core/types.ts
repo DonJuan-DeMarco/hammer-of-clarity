@@ -21,6 +21,8 @@ export interface CategoryState {
   exceptions: Exception[];
   graduatedAt?: number;
   graduationAnnounced: boolean;
+  /** Set by a reset; cleared once the gentle reset message has been shown (D10). */
+  resetNoticePending?: boolean;
 }
 
 /** A hand-added block. All of them belong to the `personal` category (D31). */

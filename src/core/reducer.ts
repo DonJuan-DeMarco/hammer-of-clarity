@@ -13,6 +13,7 @@ import {
   sameTarget,
 } from './removal';
 import { DAY_MS } from './stages';
+import { acknowledgeResets, applyIncognitoStatus, resetAll } from './tamper';
 import type { Block, CategoryId, RemovalTarget, State } from './types';
 
 /** Every change to State is one of these. The UI sends them; only the reducer applies them. */
@@ -30,7 +31,12 @@ export type Command =
   | { type: 'requestRemoval'; target: RemovalTarget; fallbackConfirmText: string }
   | { type: 'cancelRemoval'; id: string }
   | { type: 'confirmRemoval'; id: string; text: string }
-  | { type: 'expireRemovals' };
+  | { type: 'expireRemovals' }
+  /** The extension was switched off and back on (D14). */
+  | { type: 'tamper' }
+  | { type: 'incognitoStatus'; allowed: boolean }
+  /** The gentle reset message has been shown. */
+  | { type: 'acknowledgeResets' };
 
 export type CommandResult =
   | { ok: true; blockId?: string; requestId?: string }
@@ -65,6 +71,12 @@ export function reduce(original: State, command: Command, now: number, newId: Id
   switch (command.type) {
     case 'expireRemovals':
       return { state, result: { ok: true } };
+    case 'tamper':
+      return { state: resetAll(state, now), result: { ok: true } };
+    case 'incognitoStatus':
+      return { state: applyIncognitoStatus(state, command.allowed, now), result: { ok: true } };
+    case 'acknowledgeResets':
+      return { state: acknowledgeResets(state), result: { ok: true } };
     case 'requestRemoval': {
       const target = resolveTarget(state, command.target);
       if (!target) return fail(state, 'notFound');
