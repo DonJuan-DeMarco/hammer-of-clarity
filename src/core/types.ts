@@ -12,6 +12,8 @@ export interface State {
   attempts: Attempt[];
   lists: ListMeta;
   incognitoWasAllowed: boolean;
+  /** Whether the extension last had access to all sites. Undefined until first checked (1.0.1). */
+  siteAccessWasFull?: boolean;
 }
 
 export interface CategoryState {

@@ -383,5 +383,11 @@
   },
   "settingsCredits": {
     "message": "Credits and licences"
+  },
+  "siteAccessWarning": {
+    "message": "Your walls are down: Hammer of Clarity can only block sites when its site access is set to \"On all sites\"."
+  },
+  "siteAccessOpenSetting": {
+    "message": "Fix site access"
   }
 }

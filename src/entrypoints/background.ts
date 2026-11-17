@@ -4,12 +4,20 @@ import { reduce, type Command, type CommandResult } from '../core/reducer';
 import { parseDomainList } from '../core/lists';
 import { acceptRefreshedList, listRulePlan } from '../core/refresh';
 import { buildRules, LIST_CATEGORIES, listRulesetRule } from '../core/rules';
+import { protectionGaps } from '../core/tamper';
 import type { State } from '../core/types';
 import { applyRules, installListRule } from '../adapters/dnr';
 import { downloadList } from '../adapters/lists';
 import { t } from '../adapters/i18n';
 import type { CommandMessage } from '../adapters/messages';
-import { isIncognitoAllowed, onReEnabled, openOnboarding, setIncognitoWarning } from '../adapters/lifecycle';
+import {
+  hasFullSiteAccess,
+  isIncognitoAllowed,
+  onReEnabled,
+  onSiteAccessChanged,
+  openOnboarding,
+  setWarningBadge,
+} from '../adapters/lifecycle';
 import { loadState, saveState } from '../adapters/storage';
 
 const MENU_BLOCK_LINK = 'block-link';
@@ -40,11 +48,13 @@ async function apply(command: Command): Promise<CommandResult> {
 /** Makes the browser match the state: blocking rules, and the warning badge while incognito is uncovered. */
 async function syncBrowser(state: State): Promise<void> {
   await applyRules(buildRules(state), listRulePlan(state));
-  await setIncognitoWarning(!state.incognitoWasAllowed);
+  await setWarningBadge(protectionGaps(state).length > 0);
 }
 
-async function checkIncognito(): Promise<void> {
+/** Incognito access and site access: either one switched off is a side door (D13, 1.0.1). */
+async function checkAccess(): Promise<void> {
   await dispatch({ type: 'incognitoStatus', allowed: await isIncognitoAllowed() });
+  await dispatch({ type: 'siteAccessStatus', full: await hasFullSiteAccess() });
   await syncBrowser(await loadState());
 }
 
@@ -90,8 +100,10 @@ async function refreshLists(): Promise<void> {
 export default defineBackground(() => {
   // Registered first, while the worker starts: this is how a re-enable is noticed (D14).
   onReEnabled(() => void dispatch({ type: 'tamper' }));
-  // Every time the worker wakes, including on browser start and after a re-enable.
-  void checkIncognito();
+  // Every time the worker wakes, including on browser start and after a re-enable,
+  // and whenever the user changes the extension's site access.
+  void checkAccess();
+  onSiteAccessChanged(() => void checkAccess());
 
   browser.runtime.onInstalled.addListener(async ({ reason }) => {
     // First run: open setup (SPEC §7.6). Updates don't reopen it.

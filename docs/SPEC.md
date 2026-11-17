@@ -228,6 +228,10 @@ src/
   - off: red badge stays; popup shows a button that opens `chrome://extensions/?id=<id>`.
   - off → on: clear badge.
 
+- **Site access (1.0.1, D34):** on every worker start, popup open and `permissions.onAdded`/`onRemoved`, check `permissions.contains({ origins: ['<all_urls>'] })`.
+  - full → limited: reset all, `siteAccessWasFull = false`, red badge, popup warning with a button to the extension's settings page.
+  - limited → full: clear the warning (badge stays if incognito is still off). No reset.
+
 ### 7.6 Onboarding (D7, D13, D22)
 
 1. **Welcome:** one sentence on how it works (easy to block, slow to unblock).

@@ -15,7 +15,7 @@ import {
 import { acknowledgeGraduations, ATTEMPT_WINDOW_MS, graduateEligible } from './graduation';
 import { recordRefreshedList, setListRefresh } from './refresh';
 import type { ListCategoryId } from './rules';
-import { acknowledgeResets, applyIncognitoStatus, resetAll } from './tamper';
+import { acknowledgeResets, applyIncognitoStatus, applySiteAccessStatus, resetAll } from './tamper';
 import type { Block, CategoryId, RemovalTarget, State } from './types';
 
 /** Every change to State is one of these. The UI sends them; only the reducer applies them. */
@@ -37,6 +37,7 @@ export type Command =
   /** The extension was switched off and back on (D14). */
   | { type: 'tamper' }
   | { type: 'incognitoStatus'; allowed: boolean }
+  | { type: 'siteAccessStatus'; full: boolean }
   /** The gentle reset message has been shown. */
   | { type: 'acknowledgeResets' }
   /** Daily, and whenever the popup opens. */
@@ -84,6 +85,8 @@ export function reduce(original: State, command: Command, now: number, newId: Id
       return { state: resetAll(state, now), result: { ok: true } };
     case 'incognitoStatus':
       return { state: applyIncognitoStatus(state, command.allowed, now), result: { ok: true } };
+    case 'siteAccessStatus':
+      return { state: applySiteAccessStatus(state, command.full, now), result: { ok: true } };
     case 'acknowledgeResets':
       return { state: acknowledgeResets(state), result: { ok: true } };
     case 'checkGraduation':
