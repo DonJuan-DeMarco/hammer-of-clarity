@@ -163,7 +163,7 @@ src/
 
 ### 6.4 Permissions
 
-`declarativeNetRequest`, `storage`, `alarms`, `contextMenus`, `activeTab`, plus host permissions. Redirect rules need host access to the sites being redirected, which means `<all_urls>` (D33). Verify this against the DNR docs during the spike; if `declarativeNetRequest` alone is enough for redirects to an extension page, drop `<all_urls>`.
+`declarativeNetRequest`, `storage`, `alarms`, `contextMenus`, `activeTab`, plus `host_permissions: ["<all_urls>"]` (D33). Verified in ticket 01: without host access a redirect rule installs but never fires.
 
 ## 7. Behaviour
 

@@ -1,0 +1,6 @@
+{
+  "extName": { "message": "Hammer of Clarity" },
+  "extDescription": { "message": "Block distracting and harmful sites in one click. Unblocking takes time, on purpose." },
+  "blockDefaultReason": { "message": "You chose to keep this out." },
+  "blockGoBack": { "message": "Go back" }
+}
