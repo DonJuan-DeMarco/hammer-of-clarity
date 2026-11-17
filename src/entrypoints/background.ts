@@ -9,7 +9,7 @@ import { applyRules, installListRule } from '../adapters/dnr';
 import { downloadList } from '../adapters/lists';
 import { t } from '../adapters/i18n';
 import type { CommandMessage } from '../adapters/messages';
-import { isIncognitoAllowed, onReEnabled, setIncognitoWarning } from '../adapters/lifecycle';
+import { isIncognitoAllowed, onReEnabled, openOnboarding, setIncognitoWarning } from '../adapters/lifecycle';
 import { loadState, saveState } from '../adapters/storage';
 
 const MENU_BLOCK_LINK = 'block-link';
@@ -93,7 +93,9 @@ export default defineBackground(() => {
   // Every time the worker wakes, including on browser start and after a re-enable.
   void checkIncognito();
 
-  browser.runtime.onInstalled.addListener(async () => {
+  browser.runtime.onInstalled.addListener(async ({ reason }) => {
+    // First run: open setup (SPEC §7.6). Updates don't reopen it.
+    if (reason === 'install') void openOnboarding();
     browser.contextMenus.create({ id: MENU_BLOCK_LINK, title: t('menuBlockLink'), contexts: ['link'] });
     // Defaults in the user's language, so setup can be skipped (Q14). No-op once any redirect exists.
     await dispatch({

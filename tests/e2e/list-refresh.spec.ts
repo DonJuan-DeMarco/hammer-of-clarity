@@ -73,7 +73,8 @@ test('the weekly refresh swaps the bundled list for the downloaded one', async (
   // Turning refresh off goes straight back to the bundled list.
   await settings.getByLabel('Keep the adult and gambling lists up to date').uncheck();
   await expect.poll(async () => (await lists(serviceWorker)).staticOn).toEqual(['adult']);
-  expect(await blocked(context, ONLY_IN_DOWNLOAD)).toBe(false);
+  // The bundled list goes on first and the downloaded rule comes off just after (no gap), so wait for both.
+  await expect.poll(() => blocked(context, ONLY_IN_DOWNLOAD)).toBe(false);
   expect(await blocked(context, bundledAdultDomain())).toBe(true);
   await expect(settings.getByTestId('lists-status')).toHaveText('Using the lists that came with the extension.');
 });

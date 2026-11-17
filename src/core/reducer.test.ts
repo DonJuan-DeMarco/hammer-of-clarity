@@ -193,3 +193,21 @@ describe('recordAttempt', () => {
     expect(after.categories).toBe(on.categories);
   });
 });
+
+describe('completeOnboarding', () => {
+  it('needs incognito access first (D13)', () => {
+    const { state, result } = reduce(initialState(), { type: 'completeOnboarding' }, NOW, ids);
+
+    expect(result).toEqual({ ok: false, reason: 'incognitoRequired' });
+    expect(state.onboardingComplete).toBe(false);
+  });
+
+  it('finishes setup once incognito access is on, with or without any category', () => {
+    const allowed = reduce(initialState(), { type: 'incognitoStatus', allowed: true }, NOW, ids).state;
+    const { state, result } = reduce(allowed, { type: 'completeOnboarding' }, NOW, ids);
+
+    expect(result).toEqual({ ok: true });
+    expect(state.onboardingComplete).toBe(true);
+    expect(reduce(state, { type: 'completeOnboarding' }, NOW, ids).state).toBe(state);
+  });
+});

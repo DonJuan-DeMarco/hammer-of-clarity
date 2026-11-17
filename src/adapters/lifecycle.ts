@@ -28,6 +28,10 @@ export async function openIncognitoSetting(): Promise<void> {
   await browser.tabs.create({ url: `chrome://extensions/?id=${browser.runtime.id}` });
 }
 
+export async function openOnboarding(): Promise<void> {
+  await browser.tabs.create({ url: browser.runtime.getURL('/onboarding.html' as never) });
+}
+
 /** A red "!" on the toolbar icon while incognito access is off. */
 export async function setIncognitoWarning(on: boolean): Promise<void> {
   await browser.action.setBadgeText({ text: on ? '!' : '' });

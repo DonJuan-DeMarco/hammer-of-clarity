@@ -6,7 +6,7 @@ import { liveRequests } from '../../core/removal';
 import { stageFor, type Stage } from '../../core/stages';
 import type { CategoryId, State } from '../../core/types';
 import { t, type MessageKey } from '../../adapters/i18n';
-import { isIncognitoAllowed, openIncognitoSetting } from '../../adapters/lifecycle';
+import { isIncognitoAllowed, openIncognitoSetting, openOnboarding } from '../../adapters/lifecycle';
 import { sendCommand } from '../../adapters/messages';
 import { loadState } from '../../adapters/storage';
 import { GraduationNotice } from '../../ui/GraduationNotice';
@@ -140,6 +140,11 @@ function Status() {
   if (!checked) return null;
   return (
     <>
+      {!checked.state.onboardingComplete && (
+        <button type="button" class="primary" data-testid="finish-setup" onClick={() => void openOnboarding().then(() => window.close())}>
+          {t('popupFinishSetup')}
+        </button>
+      )}
       {!checked.allowed && (
         <section class="incognito-warning" role="alert" data-testid="incognito-warning">
           <p>{t('incognitoWarning')}</p>
