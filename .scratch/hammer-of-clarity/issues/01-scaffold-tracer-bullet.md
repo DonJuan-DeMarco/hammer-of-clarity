@@ -21,11 +21,11 @@ Find out, by trying it, whether a redirect rule to an extension page works with 
 
 ## Acceptance
 
-- [ ] `pnpm dev` (or npm) loads the extension in Chrome; visiting `https://example.com` shows the block page.
-- [ ] Vitest runs and has one passing test for `core/rules.ts`.
-- [ ] Playwright launches Chrome with the unpacked extension and asserts the redirect.
-- [ ] `src/core/` imports nothing from `chrome`/`browser`.
-- [ ] Permission finding recorded.
+- [x] The built extension loaded in Chromium redirects `https://example.com` to the block page (checked via Playwright; `pnpm dev` not tried by hand).
+- [x] Vitest runs and has one passing test for `core/rules.ts`.
+- [x] Playwright launches Chrome with the unpacked extension and asserts the redirect.
+- [x] `src/core/` imports nothing from `chrome`/`browser`.
+- [x] Permission finding recorded.
 
 ## Out of scope
 
