@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy Policy · Hammer of Clarity</title>
+    <meta name="description" content="Hammer of Clarity runs entirely on your device and collects no personal data." />
+    <style>
+      :root { --bg: #fbf8f1; --ink: #2b2a27; --muted: #6f6a60; --gold: #c99a2e; --line: #ece4d2; color-scheme: light; }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #1c1b19; --ink: #ece8df; --muted: #a49d90; --gold: #e3b341; --line: #3a3833; color-scheme: dark; }
+      }
+      body { margin: 0; background: var(--bg); color: var(--ink); padding: 48px 16px 72px;
+        font: 17px/1.65 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      main { max-width: 680px; margin: 0 auto; }
+      h1 { font-size: 2rem; margin: 0 0 4px; }
+      h2 { font-size: 1.2rem; margin: 32px 0 8px; }
+      .muted { color: var(--muted); }
+      a { color: inherit; text-decoration-color: var(--gold); text-underline-offset: 3px; }
+      li { margin: 6px 0; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="muted"><a href="./">Hammer of Clarity</a></p>
+      <h1>Privacy Policy</h1>
+      <p class="muted">Effective 17 November 2026</p>
+
+      <p>
+        Hammer of Clarity is a browser extension that blocks the websites you choose. It runs entirely on your
+        device. It has no account, no server and no analytics, and it does not collect, sell or share any
+        personal data.
+      </p>
+
+      <h2>What stays on your device</h2>
+      <p>
+        The sites and categories you block, the reasons you write, your "do this instead" suggestions, your
+        settings, your progress, and a short log of visits to the block page (kept for 30 days and used only to
+        decide when a category has earned trust). All of this is saved in your browser's local extension storage
+        and never leaves your device. Removing the extension deletes it.
+      </p>
+
+      <h2>How web pages are handled</h2>
+      <p>
+        To block a site, the extension uses Chrome's built-in blocking rules, which compare the address of each
+        page you open with your list on your device. Page addresses and content are not recorded or sent
+        anywhere.
+      </p>
+
+      <h2>The only network requests</h2>
+      <p>
+        If "Keep the adult and gambling lists up to date" is on (the default), the extension downloads the latest
+        public block lists about once a week from their maintainers:
+      </p>
+      <ul>
+        <li><a href="https://oisd.nl">oisd.nl</a> (adult list)</li>
+        <li><a href="https://github.com/hagezi/dns-blocklists">raw.githubusercontent.com</a> (HaGeZi gambling list)</li>
+      </ul>
+      <p>
+        These are plain downloads. They send nothing about you, your lists or your browsing, beyond what any
+        download reveals to the server (such as your IP address). Turn the setting off to make no network
+        requests at all.
+      </p>
+
+      <h2>Permissions</h2>
+      <p>
+        The extension asks for access to all websites only because Chrome requires it to send a blocked page to
+        the extension's own block page, and to read the address of the page you are on when you click "Hammer
+        this site". It does not read or change page content.
+      </p>
+
+      <h2>Children</h2>
+      <p>The extension collects no data from anyone, including children.</p>
+
+      <h2>Changes</h2>
+      <p>If this policy changes, the new version will be published here with a new effective date.</p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions or concerns: open an issue at
+        <a href="https://github.com/DonJuan-DeMarco/hammer-of-clarity/issues">github.com/DonJuan-DeMarco/hammer-of-clarity</a>.
+        The extension's source code is published there under the GNU GPL v3.
+      </p>
+    </main>
+  </body>
+</html>
