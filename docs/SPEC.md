@@ -276,7 +276,7 @@ Choosing no category is allowed (personal blocks only).
 
 ## 10. Risks
 
-1. **Installing a ~493k-domain dynamic rule at runtime is untested** (D17, D20). Spike first. If it fails: try splitting into a few rules; else fall back to HaGeZi NSFW.
+1. ~~Installing a ~493k-domain dynamic rule at runtime is untested~~ **Resolved in ticket 02:** one rule holds the whole OISD list, static (23 ms to enable) or dynamic (~0.7 s to install, ~0.8 s to replace). No fallback needed.
 2. **`<all_urls>` and store review** (D33). Fine for personal use; needs a clear justification when publishing.
 3. **False positives in the adult list** (D32). OISD is aggressive; legitimate sites will be caught. Exceptions are the release valve.
 4. **Clock changes bypass cooldowns** (D28). Accepted.
