@@ -1,6 +1,12 @@
-# Chrome Web Store listing (draft, not submitted)
+# Chrome Web Store listing
 
-Everything below is a draft for when the extension is published (D3). Nothing here has been submitted.
+Ready to paste into the Chrome Web Store developer dashboard for version **1.0.0**. Nothing has been submitted yet.
+
+- **Package to upload:** `.output/hammer-of-clarity-1.0.0-chrome.zip` (run `pnpm zip`)
+- **Privacy policy URL:** https://donjuan-demarco.github.io/hammer-of-clarity/privacy.html
+- **Homepage URL:** https://donjuan-demarco.github.io/hammer-of-clarity/
+- **Support URL:** https://github.com/DonJuan-DeMarco/hammer-of-clarity/issues
+- **Images:** `docs/store/screenshots/` (four 1280×800 screenshots, one 440×280 promo tile). Regenerate with `pnpm build`, then `STORE_SHOTS=docs/store/screenshots pnpm exec playwright test store-screenshots`.
 
 ## Name
 
@@ -54,8 +60,20 @@ Free software under the GNU GPL v3. Block lists by OISD and HaGeZi.
 
 No remote code: the downloaded lists are plain text, parsed into blocking rules by the extension's own code.
 
-## Assets still needed
+## Screenshots, in upload order
 
-- Screenshots (1280×800): block page, setup categories step, settings with a removal request, popup.
-- Small promo tile (440×280).
-- A hosted privacy policy URL with the statement above (a static page is enough).
+1. `1-block-page.png`: the block page, with your reason, the stage and one thing to do instead.
+2. `2-popup.png`: "Block any site in one click" (popup with three walls at three stages).
+3. `3-setup.png`: "Choose what to keep out" (first-run setup).
+4. `4-settings.png`: "Unblocking takes a day and your own words" (a removal request being confirmed).
+
+The popup screenshot hides the "Finish setup" and incognito prompts, showing the popup as it looks once setup is complete.
+
+## Submitting (you)
+
+1. Register at https://chrome.google.com/webstore/devconsole (one-time USD 5 fee) and verify your contact email.
+2. **New item** → upload the zip.
+3. **Store listing:** paste the descriptions above, choose the category, upload the screenshots and the promo tile.
+4. **Privacy:** paste the single purpose, the permission justifications and the privacy policy URL; tick "does not collect" for every data type; certify the three disclosures.
+5. **Distribution:** public, all regions (or as you like).
+6. **Submit for review.** Host access to all sites usually means an in-depth review, so expect days rather than hours.

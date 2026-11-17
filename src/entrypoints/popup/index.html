@@ -3,6 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <title>Hammer of Clarity</title>
+    <style>
+      :root {
+        --bg: #fbf8f1; --ink: #2b2a27; --muted: #6f6a60; --gold: #c99a2e; --card: #ffffff; --line: #ece4d2;
+        --warn-bg: #fdecea; --warn-ink: #8a1c1c; color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1c1b19; --ink: #ece8df; --muted: #a49d90; --gold: #e3b341; --card: #262522; --line: #3a3833;
+          --warn-bg: #3b1d1b; --warn-ink: #f2b8b5; color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      button { font: inherit; cursor: pointer; }
+      .primary { background: var(--gold); color: #1c1b19; border: 0; border-radius: 999px; padding: 9px 20px; font-weight: 600; }
+      .quiet { background: none; border: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; padding: 4px; }
+      button:not(.primary):not(.quiet) { background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; }
+      button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+      input[type='text'], input[type='url'], select { font: inherit; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); }
+      .stage { color: var(--muted); white-space: nowrap; }
+      .stage-mark--on { color: var(--gold); }
+      [role='alert'] { color: var(--warn-ink); }
+      .reset-notice, .graduation-notice { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+      .reset-notice p, .graduation-notice p { margin: 4px 0; }
+      body { width: 320px; padding: 16px; }
+      main { display: flex; flex-direction: column; gap: 12px; }
+      .domain { font-size: 1.2rem; font-weight: 600; margin: 0; word-break: break-all; }
+      main > input[type='text'] { width: 100%; }
+      main > .primary { width: 100%; padding: 11px; font-size: 1rem; }
+      .incognito-warning { background: var(--warn-bg); color: var(--warn-ink); border-radius: 12px; padding: 10px 14px; }
+      .incognito-warning p { margin: 0 0 8px; }
+      .walls { border-top: 1px solid var(--line); padding-top: 10px; }
+      .walls h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 6px; }
+      .walls ul { list-style: none; padding: 0; margin: 0; }
+      .walls li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; }
+    </style>
   </head>
   <body>
     <div id="app"></div>
