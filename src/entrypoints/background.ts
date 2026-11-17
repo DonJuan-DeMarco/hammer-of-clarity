@@ -36,6 +36,15 @@ function dispatch(command: Command): Promise<CommandResult> {
 export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async () => {
     browser.contextMenus.create({ id: MENU_BLOCK_LINK, title: t('menuBlockLink'), contexts: ['link'] });
+    // Defaults in the user's language, so setup can be skipped (Q14). No-op once any redirect exists.
+    await dispatch({
+      type: 'seedRedirects',
+      redirects: [
+        { kind: 'instruction', text: t('redirectDefaultWalk') },
+        { kind: 'instruction', text: t('redirectDefaultWater') },
+        { kind: 'instruction', text: t('redirectDefaultWrite') },
+      ],
+    });
     await syncRules(await loadState());
   });
 

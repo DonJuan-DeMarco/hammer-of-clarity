@@ -100,5 +100,62 @@
   },
   "popupYourWalls": {
     "message": "Your walls"
+  },
+  "redirectDefaultWalk": {
+    "message": "Take a 10-minute walk."
+  },
+  "redirectDefaultWater": {
+    "message": "Drink a glass of water and do 20 push-ups."
+  },
+  "redirectDefaultWrite": {
+    "message": "Write down what you are feeling right now."
+  },
+  "blockHeading": {
+    "message": "This one stays out."
+  },
+  "blockInstead": {
+    "message": "Instead"
+  },
+  "blockDone": {
+    "message": "Done"
+  },
+  "settingsRedirects": {
+    "message": "Do this instead"
+  },
+  "settingsRedirectsHint": {
+    "message": "When you hit a wall, one of these is offered at random."
+  },
+  "redirectKindInstruction": {
+    "message": "Something to do"
+  },
+  "redirectKindLink": {
+    "message": "A link"
+  },
+  "redirectTextPlaceholder": {
+    "message": "For example: Call a friend"
+  },
+  "redirectUrlPlaceholder": {
+    "message": "https://"
+  },
+  "redirectAdd": {
+    "message": "Add"
+  },
+  "redirectEdit": {
+    "message": "Edit"
+  },
+  "redirectSave": {
+    "message": "Save"
+  },
+  "redirectCancel": {
+    "message": "Cancel"
+  },
+  "redirectRemove": {
+    "message": "Remove"
+  },
+  "redirectLastOne": {
+    "message": "Keep at least one."
+  },
+  "redirectInvalid": {
+    "message": "Add some text, and a web address starting with https:// for links."
   }
 }

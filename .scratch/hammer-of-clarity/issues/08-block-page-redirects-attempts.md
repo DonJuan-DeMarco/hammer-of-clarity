@@ -18,10 +18,21 @@
 
 ## Acceptance
 
-- [ ] Vitest: attempt pruning; redirect removal refused when only one remains; random pick covers all redirects.
-- [ ] Block page shows a redirect and the right reason for a personal block and a category block.
-- [ ] No attempt count visible in any UI.
+- [x] Vitest: attempt pruning; redirect removal refused when only one remains; random pick covers all redirects.
+- [x] Block page shows a redirect and the right reason for a personal block and a category block.
+- [x] No attempt count visible in any UI.
 
 ## Out of scope
 
 Reset and graduation messages (tickets 10, 11).
+
+## Result (done)
+
+- `src/core/redirects.ts`: `pickRedirect` (random, injectable for tests) and `cleanRedirect` (trims; links must be `http(s)`, so a redirect can't be a `javascript:` URL).
+- Reducer: `seedRedirects` (only into an empty list), `addRedirect`, `updateRedirect`, `removeRedirect` (refuses `lastRedirect`), `recordAttempt` (prunes to 30 days on every write, never touches stages).
+- Defaults are seeded by the background on install from `chrome.i18n` strings, so they arrive in the user's language once translations exist. "What you're feeling" became "what you are feeling" to keep apostrophes out of the message file.
+- **Block page:** emblem (`src/assets/emblem.svg`, copied as-is including its content-credentials metadata, 24 KB), "This one stays out.", stage, reason, an "Instead" card with one redirect, and a quiet **Go back**. Instruction → text + **Done**, which closes the tab. Link → opens in the same tab. Warm off-white / dark-mode palette taken from the emblem's gold. The redirect is picked once per visit so it doesn't change when storage updates.
+- Each block-page load sends `recordAttempt` for its category (`personal` for `?b=`). The guard test now also forbids any UI file from reading `.attempts`.
+- **Settings:** "Do this instead" section to add, edit (in place) and remove redirects, instruction or link. Removing the last one shows "Keep at least one."
+- Tests: 52 unit, 12 e2e. `SCREENSHOT=<path> pnpm exec playwright test tests/e2e/block-page.spec.ts` saves a screenshot of the block page for design checks.
+- Possible polish later: the emblem's SVG has wide empty margins, so the hammer looks smaller than its box.

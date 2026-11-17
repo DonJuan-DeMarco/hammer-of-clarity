@@ -101,3 +101,83 @@ describe('enableCategory', () => {
     expect(result).toEqual({ ok: false, reason: 'notAvailable' });
   });
 });
+
+describe('redirects', () => {
+  const seeded = () =>
+    reduce(
+      initialState(),
+      { type: 'seedRedirects', redirects: [{ kind: 'instruction', text: 'Walk' }, { kind: 'instruction', text: 'Water' }] },
+      NOW,
+      ids,
+    ).state;
+
+  it('seeds defaults once, only into an empty list', () => {
+    const once = seeded();
+    const twice = reduce(once, { type: 'seedRedirects', redirects: [{ kind: 'instruction', text: 'Other' }] }, NOW, ids);
+
+    expect(once.redirects.map((x) => x.text)).toEqual(['Walk', 'Water']);
+    expect(twice.state).toBe(once);
+  });
+
+  it('adds an instruction and a link, trimming text', () => {
+    let state = reduce(seeded(), { type: 'addRedirect', kind: 'instruction', text: '  Call a friend ' }, NOW, ids).state;
+    state = reduce(state, { type: 'addRedirect', kind: 'link', text: 'My book', url: 'https://example.com/book' }, NOW, ids).state;
+
+    expect(state.redirects.slice(2)).toEqual([
+      { id: expect.any(String), kind: 'instruction', text: 'Call a friend' },
+      { id: expect.any(String), kind: 'link', text: 'My book', url: 'https://example.com/book' },
+    ]);
+  });
+
+  it('refuses empty text and links without a web address', () => {
+    expect(reduce(seeded(), { type: 'addRedirect', kind: 'instruction', text: '  ' }, NOW, ids).result).toEqual({
+      ok: false,
+      reason: 'invalidRedirect',
+    });
+    expect(reduce(seeded(), { type: 'addRedirect', kind: 'link', text: 'x', url: 'javascript:alert(1)' }, NOW, ids).result).toEqual({
+      ok: false,
+      reason: 'invalidRedirect',
+    });
+  });
+
+  it('edits a redirect in place', () => {
+    const state = seeded();
+    const id = state.redirects[0]!.id;
+    const edited = reduce(state, { type: 'updateRedirect', id, kind: 'link', text: 'Run', url: 'https://example.com/run' }, NOW, ids).state;
+
+    expect(edited.redirects[0]).toEqual({ id, kind: 'link', text: 'Run', url: 'https://example.com/run' });
+  });
+
+  it('removes a redirect but never the last one', () => {
+    const state = seeded();
+    const [first, second] = state.redirects;
+    const one = reduce(state, { type: 'removeRedirect', id: first!.id }, NOW, ids).state;
+    const none = reduce(one, { type: 'removeRedirect', id: second!.id }, NOW, ids);
+
+    expect(one.redirects).toHaveLength(1);
+    expect(none.result).toEqual({ ok: false, reason: 'lastRedirect' });
+    expect(none.state).toBe(one);
+  });
+});
+
+describe('recordAttempt', () => {
+  const DAY = 24 * 60 * 60 * 1000;
+
+  it('logs the attempt and drops ones older than 30 days', () => {
+    const old = { ...initialState(), attempts: [{ category: 'social' as const, at: NOW - 31 * DAY }, { category: 'social' as const, at: NOW - 29 * DAY }] };
+    const { state, result } = reduce(old, { type: 'recordAttempt', category: 'adult' }, NOW, ids);
+
+    expect(result).toEqual({ ok: true });
+    expect(state.attempts).toEqual([
+      { category: 'social', at: NOW - 29 * DAY },
+      { category: 'adult', at: NOW },
+    ]);
+  });
+
+  it('never changes a stage', () => {
+    const on = reduce(initialState(), { type: 'enableCategory', category: 'social' }, NOW, ids).state;
+    const after = reduce(on, { type: 'recordAttempt', category: 'social' }, NOW + DAY, ids).state;
+
+    expect(after.categories).toBe(on.categories);
+  });
+});
