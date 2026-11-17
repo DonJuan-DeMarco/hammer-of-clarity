@@ -2,5 +2,14 @@
   "extName": { "message": "Hammer of Clarity" },
   "extDescription": { "message": "Block distracting and harmful sites in one click. Unblocking takes time, on purpose." },
   "blockDefaultReason": { "message": "You chose to keep this out." },
-  "blockGoBack": { "message": "Go back" }
+  "blockGoBack": { "message": "Go back" },
+  "popupHammer": { "message": "Hammer this site" },
+  "popupOnlyPath": {
+    "message": "Only block $PATH$",
+    "placeholders": { "path": { "content": "$1", "example": "/shorts" } }
+  },
+  "popupReasonPlaceholder": { "message": "Why? (optional)" },
+  "popupNotAWebsite": { "message": "Hammer of Clarity can only block websites." },
+  "popupAlreadyBlocked": { "message": "This site is already blocked." },
+  "menuBlockLink": { "message": "Block this site" }
 }
