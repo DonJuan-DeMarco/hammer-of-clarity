@@ -71,7 +71,7 @@ function Popup() {
   return (
     <main>
       <Status />
-      <p data-testid="domain">{target.domain}</p>
+      <p class="domain" data-testid="domain">{target.domain}</p>
       {target.path && (
         <label>
           <input type="checkbox" checked={onlyPath} onChange={(e) => setOnlyPath(e.currentTarget.checked)} />
@@ -84,7 +84,7 @@ function Popup() {
         value={reason}
         onInput={(e) => setReason(e.currentTarget.value)}
       />
-      <button type="button" onClick={hammer}>
+      <button type="button" class="primary" onClick={hammer}>
         {t('popupHammer')}
       </button>
       {error && <p role="alert">{t(error)}</p>}
@@ -107,7 +107,7 @@ function Walls() {
   const waiting = liveRequests(state, now).length > 0;
 
   return (
-    <section aria-label={t('popupYourWalls')}>
+    <section class="walls" aria-label={t('popupYourWalls')}>
       <h2>{t('popupYourWalls')}</h2>
       {waiting && <p data-testid="removal-waiting">{t('popupRemovalWaiting')}</p>}
       <ul>
@@ -161,7 +161,7 @@ function Status() {
 
 function SettingsLink() {
   return (
-    <button type="button" onClick={() => void browser.runtime.openOptionsPage().then(() => window.close())}>
+    <button type="button" class="quiet" onClick={() => void browser.runtime.openOptionsPage().then(() => window.close())}>
       {t('popupSettings')}
     </button>
   );
