@@ -1,33 +1,36 @@
 import { render } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
-import type { CategoryId } from '../../core/types';
+import { stageFor } from '../../core/stages';
+import type { CategoryId, State } from '../../core/types';
 import { t } from '../../adapters/i18n';
-import { loadState } from '../../adapters/storage';
+import { StageBadge } from '../../ui/StageBadge';
+import { useAppState } from '../../ui/useAppState';
 
-/** A personal block's own reason, or the category's reason, else the default (SPEC §7.7). */
-async function reasonFor(params: URLSearchParams): Promise<string> {
-  const state = await loadState();
+/** Which block sent us here: a personal block (`?b=`) or a category (`?c=`). */
+function blockedBy(state: State, params: URLSearchParams): { category: CategoryId | null; reason?: string } {
   const blockId = params.get('b');
+  if (blockId) {
+    return { category: 'personal', reason: state.blocks.find((b) => b.id === blockId)?.reason };
+  }
   const category = params.get('c');
-  const reason = blockId
-    ? state.blocks.find((b) => b.id === blockId)?.reason
-    : category && category in state.categories
-      ? state.categories[category as CategoryId].reason
-      : undefined;
-  return reason ?? t('blockDefaultReason');
+  if (category && category in state.categories) {
+    const id = category as CategoryId;
+    return { category: id, reason: state.categories[id].reason };
+  }
+  return { category: null };
 }
 
 function BlockPage() {
-  const [reason, setReason] = useState<string | null>(null);
+  const state = useAppState();
+  if (!state) return null;
 
-  useEffect(() => {
-    reasonFor(new URLSearchParams(location.search)).then(setReason);
-  }, []);
+  const { category, reason } = blockedBy(state, new URLSearchParams(location.search));
+  const stage = category ? stageFor(state.categories[category], Date.now()) : null;
 
-  if (reason === null) return null;
   return (
     <main>
-      <p data-testid="reason">{reason}</p>
+      {stage && <StageBadge stage={stage} />}
+      {/* SPEC §7.7: the block's own reason, or the category's reason, else the default. */}
+      <p data-testid="reason">{reason ?? t('blockDefaultReason')}</p>
       <button type="button" onClick={() => history.back()}>
         {t('blockGoBack')}
       </button>

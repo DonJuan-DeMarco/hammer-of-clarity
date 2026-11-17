@@ -1,32 +1,104 @@
 {
-  "extName": { "message": "Hammer of Clarity" },
-  "extDescription": { "message": "Block distracting and harmful sites in one click. Unblocking takes time, on purpose." },
-  "blockDefaultReason": { "message": "You chose to keep this out." },
-  "blockGoBack": { "message": "Go back" },
-  "popupHammer": { "message": "Hammer this site" },
+  "extName": {
+    "message": "Hammer of Clarity"
+  },
+  "extDescription": {
+    "message": "Block distracting and harmful sites in one click. Unblocking takes time, on purpose."
+  },
+  "blockDefaultReason": {
+    "message": "You chose to keep this out."
+  },
+  "blockGoBack": {
+    "message": "Go back"
+  },
+  "popupHammer": {
+    "message": "Hammer this site"
+  },
   "popupOnlyPath": {
     "message": "Only block $PATH$",
-    "placeholders": { "path": { "content": "$1", "example": "/shorts" } }
+    "placeholders": {
+      "path": {
+        "content": "$1",
+        "example": "/shorts"
+      }
+    }
   },
-  "popupReasonPlaceholder": { "message": "Why? (optional)" },
-  "popupNotAWebsite": { "message": "Hammer of Clarity can only block websites." },
-  "popupAlreadyBlocked": { "message": "This site is already blocked." },
-  "popupSettings": { "message": "Settings" },
-  "menuBlockLink": { "message": "Block this site" },
-  "settingsTitle": { "message": "Hammer of Clarity" },
-  "settingsCategories": { "message": "Categories" },
-  "categoryAdultName": { "message": "Adult" },
-  "categoryAdultDescription": { "message": "Pornography and adult content." },
-  "categoryGamblingName": { "message": "Gambling" },
-  "categoryGamblingDescription": { "message": "Casinos, betting and lotteries." },
-  "categorySocialName": { "message": "Social media" },
-  "categorySocialDescription": { "message": "Feeds built to keep you scrolling." },
-  "categoryShortVideoName": { "message": "Short-form video" },
-  "categoryShortVideoDescription": { "message": "Shorts, Reels and TikTok. The rest of YouTube stays open." },
-  "categoryChoose": { "message": "Block this category" },
-  "categorySitesHint": { "message": "Untick any site you need. After this, taking a site out takes a day." },
-  "categoryReasonPlaceholder": { "message": "Why are you blocking these? (optional)" },
-  "categoryTurnOn": { "message": "Turn on" },
-  "categoryOn": { "message": "On" },
-  "categoryComingSoon": { "message": "Coming soon" }
+  "popupReasonPlaceholder": {
+    "message": "Why? (optional)"
+  },
+  "popupNotAWebsite": {
+    "message": "Hammer of Clarity can only block websites."
+  },
+  "popupAlreadyBlocked": {
+    "message": "This site is already blocked."
+  },
+  "popupSettings": {
+    "message": "Settings"
+  },
+  "menuBlockLink": {
+    "message": "Block this site"
+  },
+  "settingsTitle": {
+    "message": "Hammer of Clarity"
+  },
+  "settingsCategories": {
+    "message": "Categories"
+  },
+  "categoryAdultName": {
+    "message": "Adult"
+  },
+  "categoryAdultDescription": {
+    "message": "Pornography and adult content."
+  },
+  "categoryGamblingName": {
+    "message": "Gambling"
+  },
+  "categoryGamblingDescription": {
+    "message": "Casinos, betting and lotteries."
+  },
+  "categorySocialName": {
+    "message": "Social media"
+  },
+  "categorySocialDescription": {
+    "message": "Feeds built to keep you scrolling."
+  },
+  "categoryShortVideoName": {
+    "message": "Short-form video"
+  },
+  "categoryShortVideoDescription": {
+    "message": "Shorts, Reels and TikTok. The rest of YouTube stays open."
+  },
+  "categoryChoose": {
+    "message": "Block this category"
+  },
+  "categorySitesHint": {
+    "message": "Untick any site you need. After this, taking a site out takes a day."
+  },
+  "categoryReasonPlaceholder": {
+    "message": "Why are you blocking these? (optional)"
+  },
+  "categoryTurnOn": {
+    "message": "Turn on"
+  },
+  "categoryOn": {
+    "message": "On"
+  },
+  "categoryComingSoon": {
+    "message": "Coming soon"
+  },
+  "categoryPersonalName": {
+    "message": "Your sites"
+  },
+  "stageForging": {
+    "message": "Forging"
+  },
+  "stageTempering": {
+    "message": "Tempering"
+  },
+  "stageClear": {
+    "message": "Clear"
+  },
+  "popupYourWalls": {
+    "message": "Your walls"
+  }
 }

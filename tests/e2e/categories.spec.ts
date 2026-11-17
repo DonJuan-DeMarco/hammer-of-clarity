@@ -29,11 +29,12 @@ test('turning on short-form video blocks Shorts and Reels but not the rest of Yo
   await card.getByRole('button', { name: 'Block this category' }).click();
   await card.getByPlaceholder('Why are you blocking these? (optional)').fill('Shorts steal my evenings');
   await card.getByRole('button', { name: 'Turn on' }).click();
-  await expect(card.getByText('On', { exact: true })).toBeVisible();
+  await expect(card.getByTestId('stage')).toHaveText(/Forging/);
 
   const shorts = await visit(context, 'https://www.youtube.com/shorts/abc123');
   await expect(shorts).toHaveURL(CATEGORY_BLOCK_PAGE('short-video'));
   await expect(shorts.getByTestId('reason')).toHaveText('Shorts steal my evenings');
+  await expect(shorts.getByTestId('stage')).toHaveText(/Forging/);
 
   const reels = await visit(context, 'https://www.instagram.com/reels/xyz/');
   await expect(reels).toHaveURL(CATEGORY_BLOCK_PAGE('short-video'));
@@ -50,7 +51,7 @@ test('sites unticked at setup stay reachable, and LinkedIn starts unticked', asy
   await expect(card.getByLabel('linkedin.com')).not.toBeChecked();
   await card.getByLabel('reddit.com').uncheck();
   await card.getByRole('button', { name: 'Turn on' }).click();
-  await expect(card.getByText('On', { exact: true })).toBeVisible();
+  await expect(card.getByTestId('stage')).toBeVisible();
 
   const facebook = await visit(context, 'https://www.facebook.com/');
   await expect(facebook).toHaveURL(CATEGORY_BLOCK_PAGE('social'));
