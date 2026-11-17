@@ -1,9 +1,12 @@
 import { browser } from 'wxt/browser';
 import { targetFromUrl } from '../core/domain';
 import { reduce, type Command, type CommandResult } from '../core/reducer';
-import { buildRules, enabledRulesets } from '../core/rules';
+import { parseDomainList } from '../core/lists';
+import { acceptRefreshedList, listRulePlan } from '../core/refresh';
+import { buildRules, LIST_CATEGORIES, listRulesetRule } from '../core/rules';
 import type { State } from '../core/types';
-import { replaceDynamicRules, setEnabledRulesets } from '../adapters/dnr';
+import { applyRules, installListRule } from '../adapters/dnr';
+import { downloadList } from '../adapters/lists';
 import { t } from '../adapters/i18n';
 import type { CommandMessage } from '../adapters/messages';
 import { isIncognitoAllowed, onReEnabled, setIncognitoWarning } from '../adapters/lifecycle';
@@ -12,10 +15,11 @@ import { loadState, saveState } from '../adapters/storage';
 const MENU_BLOCK_LINK = 'block-link';
 const ALARM_EXPIRE_REMOVALS = 'expire-removals';
 const ALARM_CHECK_GRADUATION = 'check-graduation';
+const ALARM_REFRESH_LISTS = 'refresh-lists';
 
-function ensureAlarm(name: string, periodInMinutes: number): void {
+function ensureAlarm(name: string, periodInMinutes: number, delayInMinutes = periodInMinutes): void {
   void browser.alarms.get(name).then((existing) => {
-    if (!existing) void browser.alarms.create(name, { periodInMinutes });
+    if (!existing) void browser.alarms.create(name, { periodInMinutes, delayInMinutes });
   });
 }
 
@@ -35,8 +39,7 @@ async function apply(command: Command): Promise<CommandResult> {
 
 /** Makes the browser match the state: blocking rules, and the warning badge while incognito is uncovered. */
 async function syncBrowser(state: State): Promise<void> {
-  await setEnabledRulesets(enabledRulesets(state));
-  await replaceDynamicRules(buildRules(state));
+  await applyRules(buildRules(state), listRulePlan(state));
   await setIncognitoWarning(!state.incognitoWasAllowed);
 }
 
@@ -45,12 +48,43 @@ async function checkIncognito(): Promise<void> {
   await syncBrowser(await loadState());
 }
 
-// Commands run one at a time so two quick clicks can't overwrite each other's state.
+// Changes run one at a time so two quick clicks can't overwrite each other's state.
 let queue: Promise<unknown> = Promise.resolve();
-function dispatch(command: Command): Promise<CommandResult> {
-  const run = queue.then(() => apply(command));
+function enqueue<T>(task: () => Promise<T>): Promise<T> {
+  const run = queue.then(task);
   queue = run.catch(() => undefined);
   return run;
+}
+const dispatch = (command: Command) => enqueue(() => apply(command));
+
+/**
+ * Weekly (D16): download each enabled list, check it, and swap it in. Downloading happens
+ * outside the queue so a slow site never holds up a click; installing happens inside it,
+ * re-checking that the category and refresh are still on. Any failure keeps what's
+ * installed; the next week tries again.
+ */
+async function refreshLists(): Promise<void> {
+  for (const category of LIST_CATEGORIES) {
+    const before = await loadState();
+    if (!before.lists.refreshEnabled || !before.categories[category].enabled) continue;
+    let domains: string[];
+    try {
+      domains = parseDomainList(await downloadList(category));
+    } catch (error) {
+      console.warn(`[lists] ${category}: refresh failed, keeping the current list`, error);
+      continue;
+    }
+    if (!acceptRefreshedList(category, domains.length, before.lists.installed?.[category]?.domains)) {
+      console.warn(`[lists] ${category}: refusing a list of ${domains.length} domains`);
+      continue;
+    }
+    await enqueue(async () => {
+      const state = await loadState();
+      if (!state.lists.refreshEnabled || !state.categories[category].enabled) return;
+      await installListRule(category, listRulesetRule(category, domains));
+      await apply({ type: 'listRefreshed', category, domains: domains.length });
+    });
+  }
 }
 
 export default defineBackground(() => {
@@ -81,7 +115,10 @@ export default defineBackground(() => {
   ensureAlarm(ALARM_EXPIRE_REMOVALS, 60);
   // Graduation is also checked whenever the popup opens.
   ensureAlarm(ALARM_CHECK_GRADUATION, 24 * 60);
+  // Weekly, with the first run a minute after install so a fresh install gets fresh lists.
+  ensureAlarm(ALARM_REFRESH_LISTS, 7 * 24 * 60, 1);
   browser.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === ALARM_REFRESH_LISTS) void refreshLists();
     if (alarm.name === ALARM_EXPIRE_REMOVALS) void dispatch({ type: 'expireRemovals' });
     if (alarm.name === ALARM_CHECK_GRADUATION) void dispatch({ type: 'checkGraduation' });
   });

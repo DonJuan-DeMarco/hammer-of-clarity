@@ -20,7 +20,7 @@ export function useNow(): number {
   return Date.now();
 }
 
-const formatTime = (at: number) =>
+export const formatTime = (at: number) =>
   new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(at);
 
 export function describeTarget(state: State, target: RemovalTarget): string {

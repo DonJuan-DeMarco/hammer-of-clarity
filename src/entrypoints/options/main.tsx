@@ -6,7 +6,7 @@ import { stageFor } from '../../core/stages';
 import type { RedirectInput } from '../../core/redirects';
 import type { ListCategoryId } from '../../core/rules';
 import type { CategoryId, Redirect, State } from '../../core/types';
-import { RemovalRequests, RequestRemovalButton, useNow } from './removals';
+import { formatTime, RemovalRequests, RequestRemovalButton, useNow } from './removals';
 import { t, type MessageKey } from '../../adapters/i18n';
 import { sendCommand } from '../../adapters/messages';
 import { StageBadge } from '../../ui/StageBadge';
@@ -37,6 +37,7 @@ function Settings() {
       </section>
       <PersonalBlocks state={state} now={now} />
       <RedirectsEditor redirects={state.redirects} />
+      <ListsSection state={state} />
     </main>
   );
 }
@@ -236,6 +237,28 @@ function CategorySetup({ id }: { id: CuratedCategoryId }) {
         {t('categoryTurnOn')}
       </button>
     </div>
+  );
+}
+
+/** Weekly list downloads (D16): on by default, and switching off is instant (D33). */
+function ListsSection({ state }: { state: State }) {
+  const { refreshEnabled, lastRefreshedAt } = state.lists;
+  return (
+    <section aria-label={t('settingsLists')} data-testid="lists">
+      <h2>{t('settingsLists')}</h2>
+      <label>
+        <input
+          type="checkbox"
+          checked={refreshEnabled}
+          onChange={(e) => void sendCommand({ type: 'setListRefresh', enabled: e.currentTarget.checked })}
+        />{' '}
+        {t('listsRefreshLabel')}
+      </label>
+      <p>{t('listsRefreshHint')}</p>
+      <p data-testid="lists-status">
+        {refreshEnabled && lastRefreshedAt ? t('listsLastUpdated', formatTime(lastRefreshedAt)) : t('listsBundled')}
+      </p>
+    </section>
   );
 }
 

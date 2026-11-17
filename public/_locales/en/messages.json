@@ -278,5 +278,26 @@
         "example": "example.com"
       }
     }
+  },
+  "settingsLists": {
+    "message": "Block lists"
+  },
+  "listsRefreshLabel": {
+    "message": "Keep the adult and gambling lists up to date"
+  },
+  "listsRefreshHint": {
+    "message": "Once a week, the latest public lists are downloaded from their maintainers, OISD and HaGeZi. Nothing about you is sent. Turn this off to stay fully offline."
+  },
+  "listsLastUpdated": {
+    "message": "Last updated $TIME$.",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Tue 24 Nov, 14:05"
+      }
+    }
+  },
+  "listsBundled": {
+    "message": "Using the lists that came with the extension."
   }
 }

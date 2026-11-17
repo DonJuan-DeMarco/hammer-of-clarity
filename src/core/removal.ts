@@ -6,6 +6,7 @@
 import { CURATED_LISTS, entryKey, isCurated } from './categories';
 import { normalizeDomain } from './domain';
 import { isGraduated } from './graduation';
+import { forgetInstalledList } from './refresh';
 import { DAY_MS } from './stages';
 import type { CategoryId, CategoryState, RemovalRequest, RemovalTarget, State } from './types';
 
@@ -120,8 +121,10 @@ export function applyRemoval(state: State, target: RemovalTarget, now: number): 
       const personal = blocks.length > 0 ? resetCategory(state.categories.personal, now) : offCategory();
       return { ...state, blocks, categories: { ...state.categories, personal } };
     }
-    case 'category':
-      return { ...state, categories: { ...state.categories, [target.category]: offCategory() } };
+    case 'category': {
+      const off = { ...state, categories: { ...state.categories, [target.category]: offCategory() } };
+      return target.category === 'adult' || target.category === 'gambling' ? forgetInstalledList(off, target.category) : off;
+    }
     case 'exception': {
       const current = state.categories[target.category];
       const exception = { domain: target.domain, ...(target.pathPrefix && { pathPrefix: target.pathPrefix }), addedAt: now };
