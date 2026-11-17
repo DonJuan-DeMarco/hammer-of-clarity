@@ -1,16 +1,37 @@
 import { exceptionsFor, isCurated } from './categories';
 import { normalizeDomain } from './domain';
+import { cleanRedirect, type RedirectInput } from './redirects';
+import { DAY_MS } from './stages';
 import type { Block, CategoryId, State } from './types';
 
 /** Every change to State is one of these. The UI sends them; only the reducer applies them. */
 export type Command =
   | { type: 'addBlock'; domain: string; pathPrefix?: string; reason?: string }
   /** `excluded`: site keys (`domain` or `domain/path`) unticked at setup. Omitted → the list's defaults. */
-  | { type: 'enableCategory'; category: CategoryId; reason?: string; excluded?: string[] };
+  | { type: 'enableCategory'; category: CategoryId; reason?: string; excluded?: string[] }
+  /** Install-time defaults, in the user's language. Ignored once any redirect exists. */
+  | { type: 'seedRedirects'; redirects: RedirectInput[] }
+  | ({ type: 'addRedirect' } & RedirectInput)
+  | ({ type: 'updateRedirect'; id: string } & RedirectInput)
+  | { type: 'removeRedirect'; id: string }
+  | { type: 'recordAttempt'; category: CategoryId };
 
 export type CommandResult =
   | { ok: true; blockId?: string }
-  | { ok: false; reason: 'alreadyBlocked' | 'invalidDomain' | 'alreadyEnabled' | 'notAvailable' };
+  | {
+      ok: false;
+      reason:
+        | 'alreadyBlocked'
+        | 'invalidDomain'
+        | 'alreadyEnabled'
+        | 'notAvailable'
+        | 'invalidRedirect'
+        | 'lastRedirect'
+        | 'notFound';
+    };
+
+/** Attempts are kept this long, only to decide graduation (D24). Never shown. */
+const ATTEMPT_WINDOW_MS = 30 * DAY_MS;
 
 export type IdGenerator = () => string;
 
@@ -25,7 +46,45 @@ export function reduce(state: State, command: Command, now: number, newId: IdGen
       return addBlock(state, command, now, newId);
     case 'enableCategory':
       return enableCategory(state, command, now);
+    case 'seedRedirects': {
+      if (state.redirects.length > 0) return { state, result: { ok: true } };
+      const redirects = command.redirects.flatMap((input) => {
+        const clean = cleanRedirect(input);
+        return clean ? [{ id: newId(), ...clean }] : [];
+      });
+      return { state: { ...state, redirects }, result: { ok: true } };
+    }
+    case 'addRedirect': {
+      const clean = cleanRedirect(command);
+      if (!clean) return fail(state, 'invalidRedirect');
+      return { state: { ...state, redirects: [...state.redirects, { id: newId(), ...clean }] }, result: { ok: true } };
+    }
+    case 'updateRedirect': {
+      if (!state.redirects.some((r) => r.id === command.id)) return fail(state, 'notFound');
+      const clean = cleanRedirect(command);
+      if (!clean) return fail(state, 'invalidRedirect');
+      const redirects = state.redirects.map((r) => (r.id === command.id ? { id: r.id, ...clean } : r));
+      return { state: { ...state, redirects }, result: { ok: true } };
+    }
+    case 'removeRedirect': {
+      if (!state.redirects.some((r) => r.id === command.id)) return fail(state, 'notFound');
+      // The block page always has something to offer instead (D33).
+      if (state.redirects.length === 1) return fail(state, 'lastRedirect');
+      return { state: { ...state, redirects: state.redirects.filter((r) => r.id !== command.id) }, result: { ok: true } };
+    }
+    case 'recordAttempt': {
+      // Hitting the block page is the system working: it is logged, never punished (D9).
+      const attempts = [
+        ...state.attempts.filter((a) => a.at > now - ATTEMPT_WINDOW_MS),
+        { category: command.category, at: now },
+      ];
+      return { state: { ...state, attempts }, result: { ok: true } };
+    }
   }
+}
+
+function fail(state: State, reason: Extract<CommandResult, { ok: false }>['reason']): Outcome {
+  return { state, result: { ok: false, reason } };
 }
 
 function addBlock(state: State, command: Extract<Command, { type: 'addBlock' }>, now: number, newId: IdGenerator): Outcome {

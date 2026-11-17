@@ -7,7 +7,8 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const UI_DIRS = ['src/entrypoints', 'src/ui'];
-const FORBIDDEN = [/stageStartedAt/, /\bDAY_MS\b/, /graduatedAt/];
+// `.attempts`: the attempt log exists only for graduation and is never shown (D24).
+const FORBIDDEN = [/stageStartedAt/, /\bDAY_MS\b/, /graduatedAt/, /\.attempts\b/];
 
 function uiSourceFiles(): string[] {
   return UI_DIRS.flatMap((dir) =>
