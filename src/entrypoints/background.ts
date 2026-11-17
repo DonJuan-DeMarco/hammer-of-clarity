@@ -9,6 +9,7 @@ import type { CommandMessage } from '../adapters/messages';
 import { loadState, saveState } from '../adapters/storage';
 
 const MENU_BLOCK_LINK = 'block-link';
+const ALARM_EXPIRE_REMOVALS = 'expire-removals';
 
 /** The only path for change: command → reducer → save → rules. */
 async function apply(command: Command): Promise<CommandResult> {
@@ -50,6 +51,14 @@ export default defineBackground(() => {
 
   browser.runtime.onStartup.addListener(async () => {
     await syncRules(await loadState());
+  });
+
+  // Expired removal requests also drop on any write; the alarm tidies up when nothing else happens.
+  void browser.alarms.get(ALARM_EXPIRE_REMOVALS).then((existing) => {
+    if (!existing) void browser.alarms.create(ALARM_EXPIRE_REMOVALS, { periodInMinutes: 60 });
+  });
+  browser.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === ALARM_EXPIRE_REMOVALS) void dispatch({ type: 'expireRemovals' });
   });
 
   browser.contextMenus.onClicked.addListener((info) => {

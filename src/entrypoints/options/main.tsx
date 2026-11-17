@@ -1,10 +1,11 @@
-/** Settings page (SPEC §7.8). This ticket: category cards. Later tickets add requests, redirects, lists. */
+/** Settings page (SPEC §7.8): removal requests, categories, your sites, redirects. */
 import { render } from 'preact';
 import { useState } from 'preact/hooks';
-import { CURATED_LISTS, entryKey, isCurated, type CuratedCategoryId } from '../../core/categories';
-import { stageFor, type Stage } from '../../core/stages';
+import { blockedEntries, CURATED_LISTS, entryKey, isCurated, type CuratedCategoryId } from '../../core/categories';
+import { stageFor } from '../../core/stages';
 import type { RedirectInput } from '../../core/redirects';
-import type { CategoryId, Redirect } from '../../core/types';
+import type { CategoryId, Redirect, State } from '../../core/types';
+import { RemovalRequests, RequestRemovalButton, useNow } from './removals';
 import { t, type MessageKey } from '../../adapters/i18n';
 import { sendCommand } from '../../adapters/messages';
 import { StageBadge } from '../../ui/StageBadge';
@@ -21,23 +22,36 @@ const CARDS: { id: ListCategoryId; name: MessageKey; description: MessageKey }[]
 
 function Settings() {
   const state = useAppState();
+  const now = useNow();
   if (!state) return null;
-  const now = Date.now();
   return (
     <main>
       <h1>{t('settingsTitle')}</h1>
+      <RemovalRequests state={state} now={now} />
       <section aria-label={t('settingsCategories')}>
         {CARDS.map((card) => (
-          <CategoryCard
-            key={card.id}
-            {...card}
-            enabled={state.categories[card.id].enabled}
-            stage={stageFor(state.categories[card.id], now)}
-          />
+          <CategoryCard key={card.id} {...card} state={state} now={now} />
         ))}
       </section>
+      <PersonalBlocks state={state} now={now} />
       <RedirectsEditor redirects={state.redirects} />
     </main>
+  );
+}
+
+function PersonalBlocks({ state, now }: { state: State; now: number }) {
+  if (state.blocks.length === 0) return null;
+  return (
+    <section aria-label={t('settingsYourSites')} data-testid="personal-blocks">
+      <h2>{t('settingsYourSites')}</h2>
+      <ul>
+        {state.blocks.map((block) => (
+          <li key={block.id}>
+            {entryKey(block)} <RequestRemovalButton state={state} now={now} target={{ kind: 'block', blockId: block.id }} />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -135,24 +149,41 @@ function RedirectForm(props: {
   );
 }
 
-function CategoryCard(props: {
-  id: ListCategoryId;
-  name: MessageKey;
-  description: MessageKey;
-  enabled: boolean;
-  stage: Stage | null;
-}) {
+function CategoryCard(props: { id: ListCategoryId; name: MessageKey; description: MessageKey; state: State; now: number }) {
   const [open, setOpen] = useState(false);
-  const available = isCurated(props.id);
+  const { id, state, now } = props;
+  const category = state.categories[id];
+  const available = isCurated(id);
+  const stage = stageFor(category, now);
 
   return (
-    <article data-testid={`category-${props.id}`}>
+    <article data-testid={`category-${id}`}>
       <h2>{t(props.name)}</h2>
       <p>{t(props.description)}</p>
-      {props.enabled ? (
-        <p>
-          {t('categoryOn')} {props.stage && <StageBadge stage={props.stage} />}
-        </p>
+      {category.enabled ? (
+        <>
+          <p>
+            {t('categoryOn')} {stage && <StageBadge stage={stage} />}{' '}
+            <RequestRemovalButton state={state} now={now} target={{ kind: 'category', category: id }} label="removalRequestCategory" />
+          </p>
+          {isCurated(id) && (
+            <details>
+              <summary>{t('categorySites')}</summary>
+              <ul>
+                {blockedEntries(id, category).map((entry) => (
+                  <li key={entryKey(entry)} data-testid={`site-${entryKey(entry)}`}>
+                    {entryKey(entry)}{' '}
+                    <RequestRemovalButton
+                      state={state}
+                      now={now}
+                      target={{ kind: 'exception', category: id, domain: entry.domain, ...(entry.pathPrefix && { pathPrefix: entry.pathPrefix }) }}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </>
       ) : !available ? (
         <p>{t('categoryComingSoon')}</p>
       ) : open ? (

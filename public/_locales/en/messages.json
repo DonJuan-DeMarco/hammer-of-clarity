@@ -157,5 +157,75 @@
   },
   "redirectInvalid": {
     "message": "Add some text, and a web address starting with https:// for links."
+  },
+  "removalRequest": {
+    "message": "Request removal"
+  },
+  "removalRequestCategory": {
+    "message": "Ask to turn off"
+  },
+  "removalRequested": {
+    "message": "Removal requested"
+  },
+  "removalSectionTitle": {
+    "message": "Removal requests"
+  },
+  "removalSectionHint": {
+    "message": "The wall stays up while a request waits. Changed your mind? Cancel any time."
+  },
+  "removalCoolingUntil": {
+    "message": "Ready from $TIME$.",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Tue 24 Nov, 14:05"
+      }
+    }
+  },
+  "removalConfirmBefore": {
+    "message": "Confirm before $TIME$, or the request lapses.",
+    "placeholders": {
+      "time": {
+        "content": "$1",
+        "example": "Wed 25 Nov, 14:05"
+      }
+    }
+  },
+  "removalTypeToConfirm": {
+    "message": "Type this, word for word:"
+  },
+  "removalConfirm": {
+    "message": "Remove the wall"
+  },
+  "removalCancel": {
+    "message": "Cancel request"
+  },
+  "removalWrongText": {
+    "message": "That is not the same text. Take your time."
+  },
+  "removalFixedSentence": {
+    "message": "I am choosing to remove this wall, and I accept what comes with it."
+  },
+  "removalTargetSiteIn": {
+    "message": "$SITE$ in $CATEGORY$",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "x.com"
+      },
+      "category": {
+        "content": "$2",
+        "example": "Social media"
+      }
+    }
+  },
+  "settingsYourSites": {
+    "message": "Your sites"
+  },
+  "categorySites": {
+    "message": "Sites"
+  },
+  "popupRemovalWaiting": {
+    "message": "A removal request is waiting in settings."
   }
 }

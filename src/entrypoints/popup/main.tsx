@@ -2,6 +2,7 @@ import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { browser } from 'wxt/browser';
 import { targetFromUrl, type UrlTarget } from '../../core/domain';
+import { liveRequests } from '../../core/removal';
 import { stageFor, type Stage } from '../../core/stages';
 import type { CategoryId } from '../../core/types';
 import { t, type MessageKey } from '../../adapters/i18n';
@@ -96,10 +97,13 @@ function Walls() {
     .map((id) => ({ id, stage: stageFor(state.categories[id], now) }))
     .filter((w): w is { id: CategoryId; stage: Stage } => w.stage !== null);
   if (walls.length === 0) return null;
+  // A sentence, not a count: the popup carries no numbers.
+  const waiting = liveRequests(state, now).length > 0;
 
   return (
     <section aria-label={t('popupYourWalls')}>
       <h2>{t('popupYourWalls')}</h2>
+      {waiting && <p data-testid="removal-waiting">{t('popupRemovalWaiting')}</p>}
       <ul>
         {walls.map(({ id, stage }) => (
           <li key={id} data-testid={`wall-${id}`}>
