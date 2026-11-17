@@ -1,0 +1,75 @@
+import { render } from 'preact';
+import { useEffect, useState } from 'preact/hooks';
+import { browser } from 'wxt/browser';
+import { targetFromUrl, type UrlTarget } from '../../core/domain';
+import { t, type MessageKey } from '../../adapters/i18n';
+import { sendCommand } from '../../adapters/messages';
+
+interface TargetTab {
+  tabId: number;
+  target: UrlTarget | null;
+}
+
+/** The tab to act on: the active tab, or `?tabId=` (end-to-end tests can't open a real popup). */
+async function resolveTargetTab(): Promise<TargetTab | null> {
+  const param = new URLSearchParams(location.search).get('tabId');
+  const tab = param
+    ? await browser.tabs.get(Number(param))
+    : (await browser.tabs.query({ active: true, currentWindow: true }))[0];
+  if (tab?.id === undefined) return null;
+  return { tabId: tab.id, target: tab.url ? targetFromUrl(tab.url) : null };
+}
+
+function Popup() {
+  const [tab, setTab] = useState<TargetTab | null | undefined>(undefined);
+  const [onlyPath, setOnlyPath] = useState(false);
+  const [reason, setReason] = useState('');
+  const [error, setError] = useState<MessageKey | null>(null);
+
+  useEffect(() => {
+    resolveTargetTab().then(setTab, () => setTab(null));
+  }, []);
+
+  if (tab === undefined) return null;
+  if (!tab?.target) return <p>{t('popupNotAWebsite')}</p>;
+  const { tabId, target } = tab;
+
+  async function hammer() {
+    const result = await sendCommand({
+      type: 'addBlock',
+      domain: target.domain,
+      pathPrefix: onlyPath ? target.path : undefined,
+      reason,
+    });
+    if (result.ok) {
+      await browser.tabs.reload(tabId);
+      window.close();
+    } else {
+      setError(result.reason === 'alreadyBlocked' ? 'popupAlreadyBlocked' : 'popupNotAWebsite');
+    }
+  }
+
+  return (
+    <main>
+      <p data-testid="domain">{target.domain}</p>
+      {target.path && (
+        <label>
+          <input type="checkbox" checked={onlyPath} onChange={(e) => setOnlyPath(e.currentTarget.checked)} />
+          {t('popupOnlyPath', target.path)}
+        </label>
+      )}
+      <input
+        type="text"
+        placeholder={t('popupReasonPlaceholder')}
+        value={reason}
+        onInput={(e) => setReason(e.currentTarget.value)}
+      />
+      <button type="button" onClick={hammer}>
+        {t('popupHammer')}
+      </button>
+      {error && <p role="alert">{t(error)}</p>}
+    </main>
+  );
+}
+
+render(<Popup />, document.getElementById('app')!);

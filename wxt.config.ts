@@ -9,7 +9,7 @@ export default defineConfig({
     description: '__MSG_extDescription__',
     default_locale: 'en',
     minimum_chrome_version: '157',
-    permissions: ['declarativeNetRequest'],
+    permissions: ['declarativeNetRequest', 'storage', 'contextMenus', 'activeTab'],
     // Redirect rules only fire on sites the extension has host access to (verified in ticket 01).
     host_permissions: ['<all_urls>'],
     web_accessible_resources: [
