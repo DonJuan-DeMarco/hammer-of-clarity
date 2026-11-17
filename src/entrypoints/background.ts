@@ -22,7 +22,7 @@ async function apply(command: Command): Promise<CommandResult> {
 }
 
 async function syncRules(state: State): Promise<void> {
-  await replaceDynamicRules(buildRules(state.blocks));
+  await replaceDynamicRules(buildRules(state));
 }
 
 // Commands run one at a time so two quick clicks can't overwrite each other's state.

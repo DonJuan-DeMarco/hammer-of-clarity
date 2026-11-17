@@ -31,7 +31,14 @@ function Popup() {
   }, []);
 
   if (tab === undefined) return null;
-  if (!tab?.target) return <p>{t('popupNotAWebsite')}</p>;
+  if (!tab?.target) {
+    return (
+      <main>
+        <p>{t('popupNotAWebsite')}</p>
+        <SettingsLink />
+      </main>
+    );
+  }
   const { tabId, target } = tab;
 
   async function hammer() {
@@ -68,7 +75,16 @@ function Popup() {
         {t('popupHammer')}
       </button>
       {error && <p role="alert">{t(error)}</p>}
+      <SettingsLink />
     </main>
+  );
+}
+
+function SettingsLink() {
+  return (
+    <button type="button" onClick={() => void browser.runtime.openOptionsPage().then(() => window.close())}>
+      {t('popupSettings')}
+    </button>
   );
 }
 
