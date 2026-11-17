@@ -242,5 +242,17 @@
   },
   "incognitoOpenSetting": {
     "message": "Open the setting"
+  },
+  "graduationAnnouncement": {
+    "message": "$CATEGORY$ has graduated: you are trusted here now.",
+    "placeholders": {
+      "category": {
+        "content": "$1",
+        "example": "Social media"
+      }
+    }
+  },
+  "graduationExplain": {
+    "message": "Removing a wall here no longer has a waiting period. You will still type your reason."
   }
 }
