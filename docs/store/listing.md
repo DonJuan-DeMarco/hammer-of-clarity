@@ -1,6 +1,6 @@
 # Chrome Web Store listing
 
-Ready to paste into the Chrome Web Store developer dashboard for version **1.0.1**. Version 1.0.0 was submitted on 17 November 2026; 1.0.1 adds the site-access tamper check.
+Ready to paste into the Chrome Web Store developer dashboard for version **1.0.1**. 1.0.1 is 1.0.0 plus the site-access tamper check (D34).
 
 - **Package to upload:** `.output/hammer-of-clarity-1.0.1-chrome.zip` (run `pnpm zip`)
 - **Privacy policy URL:** https://donjuan-demarco.github.io/hammer-of-clarity/privacy.html
