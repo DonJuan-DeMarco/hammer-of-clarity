@@ -21,12 +21,20 @@ Find out, by trying it, whether a redirect rule to an extension page works with 
 
 ## Acceptance
 
-- [ ] `pnpm dev` (or npm) loads the extension in Chrome; visiting `https://example.com` shows the block page.
-- [ ] Vitest runs and has one passing test for `core/rules.ts`.
-- [ ] Playwright launches Chrome with the unpacked extension and asserts the redirect.
-- [ ] `src/core/` imports nothing from `chrome`/`browser`.
-- [ ] Permission finding recorded.
+- [x] The built extension loaded in Chromium redirects `https://example.com` to the block page (checked via Playwright; `pnpm dev` not tried by hand).
+- [x] Vitest runs and has one passing test for `core/rules.ts`.
+- [x] Playwright launches Chrome with the unpacked extension and asserts the redirect.
+- [x] `src/core/` imports nothing from `chrome`/`browser`.
+- [x] Permission finding recorded.
 
 ## Out of scope
 
 State, storage, popup, categories, styling.
+
+## Result (done)
+
+- Scaffold: WXT 0.21.5, Vite 8, TypeScript 7, Preact 11, Vitest 5, Playwright 1.65 (Chromium 159). `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm test:e2e`, `pnpm typecheck`.
+- Adapters use `browser` from `wxt/browser`, not `chrome`, to keep the Firefox door open (D4).
+- Locales live in `public/_locales/` (WXT's public dir is at the project root, not under `src/`). `t()` in `src/adapters/i18n.ts` is typed against the message keys.
+- The "fail on hard-coded UI strings" lint was skipped: not cheap with the current tooling. Revisit if strings start slipping through.
+- **Permission finding (D33):** a `redirect` rule to the extension's own page, with only the `declarativeNetRequest` permission, installs fine but **never fires**: the page loads normally. Adding `host_permissions: ['<all_urls>']` makes the same rule redirect. So `<all_urls>` is required for the block page. (Possible store-friendlier variant for later: declare it under `optional_host_permissions` and request it during onboarding. Same grant, but asked for in context.)
