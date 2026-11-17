@@ -1,23 +1,5 @@
 import type { BrowserContext, Page, Worker } from '@playwright/test';
-import { expect, extensionIdOf, openPopupFor, test } from './fixtures';
-
-/**
- * Lets the cooldown "pass": moves every open request's times back so it is confirmable now.
- * Only the stored data changes; the extension's code has no test hooks for time.
- */
-async function finishCooldowns(worker: Worker) {
-  await worker.evaluate(async () => {
-    const chrome = (globalThis as any).chrome;
-    const { 'state:v1': state } = await chrome.storage.local.get('state:v1');
-    const now = Date.now();
-    for (const request of state.removalRequests) {
-      request.createdAt = now - 25 * 60 * 60 * 1000;
-      request.readyAt = now - 60 * 1000;
-      request.expiresAt = now + 23 * 60 * 60 * 1000;
-    }
-    await chrome.storage.local.set({ 'state:v1': state });
-  });
-}
+import { expect, extensionIdOf, finishCooldowns, openPopupFor, test } from './fixtures';
 
 async function openSettings(context: BrowserContext, worker: Worker): Promise<Page> {
   const page = await context.newPage();
