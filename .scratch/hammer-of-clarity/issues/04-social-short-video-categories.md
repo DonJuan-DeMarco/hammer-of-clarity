@@ -14,7 +14,7 @@
 
 ## Acceptance
 
-- [x] Vitest: rules for an enabled category, exceptions produce higher-priority allow rules, LinkedIn excluded by default.
+- [x] Vitest: rules for an enabled category, exceptions ~~produce higher-priority allow rules~~ are left out of the rules (see deviation below), LinkedIn excluded by default.
 - [x] Enabling `short-video` blocks `youtube.com/shorts/...` and `instagram.com/reels/...`, not `youtube.com`.
 - [x] Unticking a site at enable time leaves it reachable.
 - [x] Block page shows the category reason.
