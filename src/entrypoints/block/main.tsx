@@ -7,6 +7,7 @@ import type { CategoryId, Redirect, State } from '../../core/types';
 import { t } from '../../adapters/i18n';
 import { sendCommand } from '../../adapters/messages';
 import emblemUrl from '../../assets/emblem.svg';
+import { ResetNotice } from '../../ui/ResetNotice';
 import { StageBadge } from '../../ui/StageBadge';
 import { useAppState } from '../../ui/useAppState';
 
@@ -46,6 +47,7 @@ function BlockPage() {
       <img class="emblem" src={emblemUrl} alt="" />
       <h1>{t('blockHeading')}</h1>
       {stage && <StageBadge stage={stage} />}
+      <ResetNotice state={state} withReasonAndRedirect={false} />
       <blockquote data-testid="reason">{reasonFor(state, category)}</blockquote>
       {redirect.current && <Instead redirect={redirect.current} />}
       <button type="button" class="quiet" onClick={() => history.back()}>

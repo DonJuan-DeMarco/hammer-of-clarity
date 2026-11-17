@@ -96,10 +96,10 @@ export function newRequest(id: string, target: RemovalTarget, now: number, confi
   return { id, target, createdAt: now, readyAt, expiresAt: readyAt + CONFIRM_WINDOW_MS, confirmText };
 }
 
-/** Back to the start of Forging (D10). Graduation is lost with it. */
+/** Back to the start of Forging, gently (D10). Graduation is lost with it. */
 export function resetCategory(category: CategoryState, now: number): CategoryState {
   const { graduatedAt: _graduated, ...rest } = category;
-  return { ...rest, stageStartedAt: now, graduationAnnounced: false };
+  return { ...rest, stageStartedAt: now, graduationAnnounced: false, resetNoticePending: true };
 }
 
 const offCategory = (): CategoryState => ({ enabled: false, exceptions: [], graduationAnnounced: false });

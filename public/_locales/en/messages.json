@@ -227,5 +227,20 @@
   },
   "popupRemovalWaiting": {
     "message": "A removal request is waiting in settings."
+  },
+  "resetHeading": {
+    "message": "You are starting fresh."
+  },
+  "resetBody": {
+    "message": "A slip does not undo what you have learned."
+  },
+  "resetWhy": {
+    "message": "Here is why you started:"
+  },
+  "incognitoWarning": {
+    "message": "Incognito windows are not covered yet. Allow Hammer of Clarity in incognito so your walls hold there too."
+  },
+  "incognitoOpenSetting": {
+    "message": "Open the setting"
   }
 }
