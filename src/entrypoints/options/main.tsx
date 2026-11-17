@@ -1,12 +1,13 @@
 /** Settings page (SPEC §7.8). This ticket: category cards. Later tickets add requests, redirects, lists. */
 import { render } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
-import { browser } from 'wxt/browser';
+import { useState } from 'preact/hooks';
 import { CURATED_LISTS, entryKey, isCurated, type CuratedCategoryId } from '../../core/categories';
-import type { CategoryId, State } from '../../core/types';
+import { stageFor, type Stage } from '../../core/stages';
+import type { CategoryId } from '../../core/types';
 import { t, type MessageKey } from '../../adapters/i18n';
 import { sendCommand } from '../../adapters/messages';
-import { loadState } from '../../adapters/storage';
+import { StageBadge } from '../../ui/StageBadge';
+import { useAppState } from '../../ui/useAppState';
 
 type ListCategoryId = Exclude<CategoryId, 'personal'>;
 
@@ -17,34 +18,34 @@ const CARDS: { id: ListCategoryId; name: MessageKey; description: MessageKey }[]
   { id: 'short-video', name: 'categoryShortVideoName', description: 'categoryShortVideoDescription' },
 ];
 
-/** Keeps the page in step with storage, so changes made from the popup show up here too. */
-function useAppState(): State | null {
-  const [state, setState] = useState<State | null>(null);
-  useEffect(() => {
-    const refresh = () => void loadState().then(setState);
-    refresh();
-    browser.storage.onChanged.addListener(refresh);
-    return () => browser.storage.onChanged.removeListener(refresh);
-  }, []);
-  return state;
-}
-
 function Settings() {
   const state = useAppState();
   if (!state) return null;
+  const now = Date.now();
   return (
     <main>
       <h1>{t('settingsTitle')}</h1>
       <section aria-label={t('settingsCategories')}>
         {CARDS.map((card) => (
-          <CategoryCard key={card.id} {...card} enabled={state.categories[card.id].enabled} />
+          <CategoryCard
+            key={card.id}
+            {...card}
+            enabled={state.categories[card.id].enabled}
+            stage={stageFor(state.categories[card.id], now)}
+          />
         ))}
       </section>
     </main>
   );
 }
 
-function CategoryCard(props: { id: ListCategoryId; name: MessageKey; description: MessageKey; enabled: boolean }) {
+function CategoryCard(props: {
+  id: ListCategoryId;
+  name: MessageKey;
+  description: MessageKey;
+  enabled: boolean;
+  stage: Stage | null;
+}) {
   const [open, setOpen] = useState(false);
   const available = isCurated(props.id);
 
@@ -53,7 +54,9 @@ function CategoryCard(props: { id: ListCategoryId; name: MessageKey; description
       <h2>{t(props.name)}</h2>
       <p>{t(props.description)}</p>
       {props.enabled ? (
-        <p>{t('categoryOn')}</p>
+        <p>
+          {t('categoryOn')} {props.stage && <StageBadge stage={props.stage} />}
+        </p>
       ) : !available ? (
         <p>{t('categoryComingSoon')}</p>
       ) : open ? (

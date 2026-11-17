@@ -16,6 +16,20 @@ test('"Hammer this site" blocks the site and shows the reason', async ({ context
 
   await expect(site).toHaveURL(BLOCK_PAGE);
   await expect(site.getByTestId('reason')).toHaveText('It eats my mornings');
+  await expect(site.getByTestId('stage')).toHaveText(/Forging/);
+});
+
+test('the popup lists each wall with its stage and no numbers', async ({ context, serviceWorker }) => {
+  const site = await context.newPage();
+  await site.goto('https://example.com/');
+  await (await openPopupFor(context, serviceWorker, site)).getByRole('button', { name: 'Hammer this site' }).click();
+  await expect(site).toHaveURL(BLOCK_PAGE);
+
+  const popup = await openPopupFor(context, serviceWorker, site);
+  const wall = popup.getByTestId('wall-personal');
+  await expect(wall).toHaveText(/Your sites/);
+  await expect(wall.getByTestId('stage')).toHaveText(/Forging/);
+  await expect(popup.locator('body')).not.toHaveText(/\d/);
 });
 
 test('narrowing to the path blocks only that path', async ({ context, serviceWorker }) => {

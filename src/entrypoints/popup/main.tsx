@@ -2,8 +2,13 @@ import { render } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { browser } from 'wxt/browser';
 import { targetFromUrl, type UrlTarget } from '../../core/domain';
+import { stageFor, type Stage } from '../../core/stages';
+import type { CategoryId } from '../../core/types';
 import { t, type MessageKey } from '../../adapters/i18n';
 import { sendCommand } from '../../adapters/messages';
+import { CATEGORY_NAMES } from '../../ui/categoryNames';
+import { StageBadge } from '../../ui/StageBadge';
+import { useAppState } from '../../ui/useAppState';
 
 interface TargetTab {
   tabId: number;
@@ -35,6 +40,7 @@ function Popup() {
     return (
       <main>
         <p>{t('popupNotAWebsite')}</p>
+        <Walls />
         <SettingsLink />
       </main>
     );
@@ -75,8 +81,33 @@ function Popup() {
         {t('popupHammer')}
       </button>
       {error && <p role="alert">{t(error)}</p>}
+      <Walls />
       <SettingsLink />
     </main>
+  );
+}
+
+/** Every category that's on, with its stage. */
+function Walls() {
+  const state = useAppState();
+  if (!state) return null;
+  const now = Date.now();
+  const walls = (Object.keys(state.categories) as CategoryId[])
+    .map((id) => ({ id, stage: stageFor(state.categories[id], now) }))
+    .filter((w): w is { id: CategoryId; stage: Stage } => w.stage !== null);
+  if (walls.length === 0) return null;
+
+  return (
+    <section aria-label={t('popupYourWalls')}>
+      <h2>{t('popupYourWalls')}</h2>
+      <ul>
+        {walls.map(({ id, stage }) => (
+          <li key={id} data-testid={`wall-${id}`}>
+            {t(CATEGORY_NAMES[id])} <StageBadge stage={stage} />
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
