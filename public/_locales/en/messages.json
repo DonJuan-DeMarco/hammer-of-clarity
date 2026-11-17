@@ -359,5 +359,29 @@
   },
   "popupFinishSetup": {
     "message": "Finish setup"
+  },
+  "creditsTitle": {
+    "message": "Credits and licences"
+  },
+  "creditsLicence": {
+    "message": "Hammer of Clarity is free software under the GNU General Public License, version 3."
+  },
+  "creditsSource": {
+    "message": "Its source code, including the full licence text, is published with the extension."
+  },
+  "creditsLists": {
+    "message": "Block lists"
+  },
+  "creditsListsHint": {
+    "message": "The adult and gambling categories use these community-maintained lists. Thank you to their maintainers."
+  },
+  "creditsSourceLink": {
+    "message": "source"
+  },
+  "creditsSoftware": {
+    "message": "Software"
+  },
+  "settingsCredits": {
+    "message": "Credits and licences"
   }
 }

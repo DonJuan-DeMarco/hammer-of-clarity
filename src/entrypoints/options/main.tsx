@@ -38,6 +38,11 @@ function Settings() {
       <PersonalBlocks state={state} now={now} />
       <RedirectsEditor redirects={state.redirects} />
       <ListsSection state={state} />
+      <footer>
+        <a href="/credits.html" data-testid="credits-link">
+          {t('settingsCredits')}
+        </a>
+      </footer>
     </main>
   );
 }

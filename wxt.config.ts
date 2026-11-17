@@ -1,5 +1,6 @@
 import { defineConfig } from 'wxt';
 import preact from '@preact/preset-vite';
+import { resolve } from 'node:path';
 import { buildListRuleset } from './scripts/lists';
 
 export default defineConfig({
@@ -10,8 +11,11 @@ export default defineConfig({
     description: '__MSG_extDescription__',
     default_locale: 'en',
     minimum_chrome_version: '157',
-    permissions: ['declarativeNetRequest', 'storage', 'contextMenus', 'activeTab', 'alarms'],
+    // Each one is used (ticket 13): blocking rules, saved state, the right-click item, timers.
+    permissions: ['declarativeNetRequest', 'storage', 'contextMenus', 'alarms'],
     // Redirect rules only fire on sites the extension has host access to (verified in ticket 01).
+    // It also lets the popup read the current tab's address (so no activeTab or tabs) and covers
+    // the two list downloads (ticket 06).
     host_permissions: ['<all_urls>'],
     web_accessible_resources: [
       { resources: ['block.html'], matches: ['<all_urls>'] },
@@ -31,6 +35,9 @@ export default defineConfig({
         console.log(`[lists] ${category}: ${domains} domains`);
         files.push({ relativeDest: `rulesets/${category}.json`, contents: json });
       }
+      // GPLv3 travels with the package, along with the credits for the bundled lists.
+      files.push({ absoluteSrc: resolve('LICENSE'), relativeDest: 'LICENSE.txt' });
+      files.push({ absoluteSrc: resolve('NOTICE'), relativeDest: 'NOTICE.txt' });
     },
   },
 });

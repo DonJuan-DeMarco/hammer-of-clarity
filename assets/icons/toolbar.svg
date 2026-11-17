@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Toolbar icon (16/32/48 px): hammer head and gem only, no rays (D30).
+       Dark outlines keep it readable on both light and dark toolbars. -->
+  <g transform="translate(32 32) scale(1.07) rotate(-28) translate(-32 -32)">
+    <rect x="28.5" y="36" width="7" height="25" rx="2.5" fill="#8B5A2B" stroke="#2b2f3a" stroke-width="2.5"/>
+    <rect x="6" y="13" width="52" height="26" rx="4" fill="#EEF3F9" stroke="#2b2f3a" stroke-width="3.5"/>
+    <rect x="6" y="13" width="52" height="5" fill="#E3B341"/>
+    <rect x="6" y="34" width="52" height="5" fill="#E3B341"/>
+    <rect x="6" y="13" width="52" height="26" rx="4" fill="none" stroke="#2b2f3a" stroke-width="3.5"/>
+    <circle cx="32" cy="26" r="9" fill="#3D8BD9" stroke="#E3B341" stroke-width="3.5"/>
+    <circle cx="29" cy="23" r="2.6" fill="#D6ECFF"/>
+  </g>
+</svg>
