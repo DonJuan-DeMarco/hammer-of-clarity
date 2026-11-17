@@ -5,6 +5,7 @@
  */
 import { CURATED_LISTS, entryKey, isCurated } from './categories';
 import { normalizeDomain } from './domain';
+import { isGraduated } from './graduation';
 import { DAY_MS } from './stages';
 import type { CategoryId, CategoryState, RemovalRequest, RemovalTarget, State } from './types';
 
@@ -78,7 +79,14 @@ export function resolveTarget(state: State, target: RemovalTarget): RemovalTarge
   }
 }
 
-export function cooldownFor(target: RemovalTarget): number {
+/** The category a removal would weaken. */
+export function categoryOf(target: RemovalTarget): CategoryId {
+  return target.kind === 'block' ? 'personal' : target.category;
+}
+
+export function cooldownFor(state: State, target: RemovalTarget): number {
+  // Graduated: trusted now, so no waiting. The retype still applies (D19).
+  if (isGraduated(state, categoryOf(target))) return 0;
   return target.kind === 'category' && HIGH_STAKES.includes(target.category) ? LONG_COOLDOWN_MS : SHORT_COOLDOWN_MS;
 }
 

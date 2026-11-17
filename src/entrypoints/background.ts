@@ -11,14 +11,24 @@ import { loadState, saveState } from '../adapters/storage';
 
 const MENU_BLOCK_LINK = 'block-link';
 const ALARM_EXPIRE_REMOVALS = 'expire-removals';
+const ALARM_CHECK_GRADUATION = 'check-graduation';
 
-/** The only path for change: command → reducer → save → browser. */
+function ensureAlarm(name: string, periodInMinutes: number): void {
+  void browser.alarms.get(name).then((existing) => {
+    if (!existing) void browser.alarms.create(name, { periodInMinutes });
+  });
+}
+
+/**
+ * The only path for change: command → reducer → browser → save. Rules go first so that
+ * by the time any page sees the new state (via storage), the browser already blocks to match.
+ */
 async function apply(command: Command): Promise<CommandResult> {
   const state = await loadState();
   const { state: next, result } = reduce(state, command, Date.now());
   if (next !== state) {
-    await saveState(next);
     await syncBrowser(next);
+    await saveState(next);
   }
   return result;
 }
@@ -66,12 +76,13 @@ export default defineBackground(() => {
     await syncBrowser(await loadState());
   });
 
-  // Expired removal requests also drop on any write; the alarm tidies up when nothing else happens.
-  void browser.alarms.get(ALARM_EXPIRE_REMOVALS).then((existing) => {
-    if (!existing) void browser.alarms.create(ALARM_EXPIRE_REMOVALS, { periodInMinutes: 60 });
-  });
+  // Expired removal requests also drop on any write; this tidies up when nothing else happens.
+  ensureAlarm(ALARM_EXPIRE_REMOVALS, 60);
+  // Graduation is also checked whenever the popup opens.
+  ensureAlarm(ALARM_CHECK_GRADUATION, 24 * 60);
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === ALARM_EXPIRE_REMOVALS) void dispatch({ type: 'expireRemovals' });
+    if (alarm.name === ALARM_CHECK_GRADUATION) void dispatch({ type: 'checkGraduation' });
   });
 
   browser.contextMenus.onClicked.addListener((info) => {

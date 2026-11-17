@@ -7,14 +7,17 @@ import { t, type MessageKey } from '../../adapters/i18n';
 import { sendCommand } from '../../adapters/messages';
 import { CATEGORY_NAMES } from '../../ui/categoryNames';
 
-/** Re-renders every 30 s so a request becomes confirmable without reloading the page. */
+/**
+ * The current time, read fresh on every render (so a request created a moment ago with no
+ * cooldown is already confirmable), plus a re-render every 30 s so waiting ones flip over.
+ */
 export function useNow(): number {
-  const [now, setNow] = useState(Date.now());
+  const [, setTick] = useState(0);
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    const timer = setInterval(() => setTick((n) => n + 1), 30_000);
     return () => clearInterval(timer);
   }, []);
-  return now;
+  return Date.now();
 }
 
 const formatTime = (at: number) =>

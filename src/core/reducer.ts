@@ -12,7 +12,7 @@ import {
   resolveTarget,
   sameTarget,
 } from './removal';
-import { DAY_MS } from './stages';
+import { acknowledgeGraduations, ATTEMPT_WINDOW_MS, graduateEligible } from './graduation';
 import { acknowledgeResets, applyIncognitoStatus, resetAll } from './tamper';
 import type { Block, CategoryId, RemovalTarget, State } from './types';
 
@@ -36,7 +36,10 @@ export type Command =
   | { type: 'tamper' }
   | { type: 'incognitoStatus'; allowed: boolean }
   /** The gentle reset message has been shown. */
-  | { type: 'acknowledgeResets' };
+  | { type: 'acknowledgeResets' }
+  /** Daily, and whenever the popup opens. */
+  | { type: 'checkGraduation' }
+  | { type: 'acknowledgeGraduations' };
 
 export type CommandResult =
   | { ok: true; blockId?: string; requestId?: string }
@@ -55,8 +58,6 @@ export type CommandResult =
         | 'wrongText';
     };
 
-/** Attempts are kept this long, only to decide graduation (D24). Never shown. */
-const ATTEMPT_WINDOW_MS = 30 * DAY_MS;
 
 export type IdGenerator = () => string;
 
@@ -77,6 +78,10 @@ export function reduce(original: State, command: Command, now: number, newId: Id
       return { state: applyIncognitoStatus(state, command.allowed, now), result: { ok: true } };
     case 'acknowledgeResets':
       return { state: acknowledgeResets(state), result: { ok: true } };
+    case 'checkGraduation':
+      return { state: graduateEligible(state, now), result: { ok: true } };
+    case 'acknowledgeGraduations':
+      return { state: acknowledgeGraduations(state), result: { ok: true } };
     case 'requestRemoval': {
       const target = resolveTarget(state, command.target);
       if (!target) return fail(state, 'notFound');
@@ -84,7 +89,7 @@ export function reduce(original: State, command: Command, now: number, newId: Id
       if (existing) return { state, result: { ok: true, requestId: existing.id } };
       const confirmText = confirmTextFor(state, target, command.fallbackConfirmText);
       if (!confirmText) return fail(state, 'invalidRequest');
-      const request = newRequest(newId(), target, now, confirmText, cooldownFor(target));
+      const request = newRequest(newId(), target, now, confirmText, cooldownFor(state, target));
       return {
         state: { ...state, removalRequests: [...state.removalRequests, request] },
         result: { ok: true, requestId: request.id },

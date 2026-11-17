@@ -9,6 +9,7 @@ import { t, type MessageKey } from '../../adapters/i18n';
 import { isIncognitoAllowed, openIncognitoSetting } from '../../adapters/lifecycle';
 import { sendCommand } from '../../adapters/messages';
 import { loadState } from '../../adapters/storage';
+import { GraduationNotice } from '../../ui/GraduationNotice';
 import { ResetNotice } from '../../ui/ResetNotice';
 import { CATEGORY_NAMES } from '../../ui/categoryNames';
 import { StageBadge } from '../../ui/StageBadge';
@@ -131,6 +132,7 @@ function Status() {
     void (async () => {
       const allowed = await isIncognitoAllowed();
       await sendCommand({ type: 'incognitoStatus', allowed });
+      await sendCommand({ type: 'checkGraduation' });
       setChecked({ allowed, state: await loadState() });
     })();
   }, []);
@@ -147,6 +149,7 @@ function Status() {
         </section>
       )}
       <ResetNotice state={checked.state} />
+      <GraduationNotice state={checked.state} />
     </>
   );
 }
