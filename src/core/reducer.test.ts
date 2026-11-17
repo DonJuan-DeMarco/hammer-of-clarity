@@ -95,8 +95,20 @@ describe('enableCategory', () => {
     expect(again.state).toBe(on);
   });
 
-  it('refuses categories that have no sites yet', () => {
-    const { result } = reduce(initialState(), { type: 'enableCategory', category: 'adult' }, NOW, ids);
+  it('turns adult and gambling on with a reason and no exceptions, ignoring any unticked sites', () => {
+    const { state, result } = reduce(
+      initialState(),
+      { type: 'enableCategory', category: 'adult', reason: 'For my relationship', excluded: ['anything.example'] },
+      NOW,
+      ids,
+    );
+
+    expect(result).toEqual({ ok: true });
+    expect(state.categories.adult).toMatchObject({ enabled: true, reason: 'For my relationship', stageStartedAt: NOW, exceptions: [] });
+  });
+
+  it('refuses turning on personal directly: it follows your own blocks', () => {
+    const { result } = reduce(initialState(), { type: 'enableCategory', category: 'personal' }, NOW, ids);
 
     expect(result).toEqual({ ok: false, reason: 'notAvailable' });
   });

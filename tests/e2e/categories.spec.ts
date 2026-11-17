@@ -64,9 +64,11 @@ test('sites unticked at setup stay reachable, and LinkedIn starts unticked', asy
   await expect(linkedin).toHaveURL('https://www.linkedin.com/');
 });
 
-test('adult and gambling are shown but not available yet', async ({ context, serviceWorker }) => {
+test('adult and gambling have no checklist, just an optional reason', async ({ context, serviceWorker }) => {
   const settings = await openSettings(context, serviceWorker);
+  const card = settings.getByTestId('category-gambling');
+  await card.getByRole('button', { name: 'Block this category' }).click();
 
-  await expect(settings.getByTestId('category-adult')).toContainText('Coming soon');
-  await expect(settings.getByTestId('category-gambling')).toContainText('Coming soon');
+  await expect(card.getByRole('checkbox')).toHaveCount(0);
+  await expect(card.getByPlaceholder('Why are you blocking these? (optional)')).toBeVisible();
 });

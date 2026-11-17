@@ -189,8 +189,8 @@ function addBlock(state: State, command: Extract<Command, { type: 'addBlock' }>,
 /** Turning a category on is instant (moves toward safety are never slowed). */
 function enableCategory(state: State, command: Extract<Command, { type: 'enableCategory' }>, now: number): Outcome {
   const { category } = command;
-  // Adult and gambling get their sites in ticket 05; until then, turning them on would block nothing.
-  if (!isCurated(category)) return { state, result: { ok: false, reason: 'notAvailable' } };
+  // `personal` follows your own blocks; it isn't switched on by itself.
+  if (category === 'personal') return { state, result: { ok: false, reason: 'notAvailable' } };
   const current = state.categories[category];
   if (current.enabled) return { state, result: { ok: false, reason: 'alreadyEnabled' } };
 
@@ -206,7 +206,8 @@ function enableCategory(state: State, command: Extract<Command, { type: 'enableC
           enabled: true,
           ...(reason && { reason }),
           stageStartedAt: now,
-          exceptions: exceptionsFor(category, command.excluded, now),
+          // Adult and gambling lists are too long to tick through; their exceptions come later, one by one (D32).
+          exceptions: isCurated(category) ? exceptionsFor(category, command.excluded, now) : [],
         },
       },
     },

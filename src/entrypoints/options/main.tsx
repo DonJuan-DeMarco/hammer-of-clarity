@@ -4,6 +4,7 @@ import { useState } from 'preact/hooks';
 import { blockedEntries, CURATED_LISTS, entryKey, isCurated, type CuratedCategoryId } from '../../core/categories';
 import { stageFor } from '../../core/stages';
 import type { RedirectInput } from '../../core/redirects';
+import type { ListCategoryId } from '../../core/rules';
 import type { CategoryId, Redirect, State } from '../../core/types';
 import { RemovalRequests, RequestRemovalButton, useNow } from './removals';
 import { t, type MessageKey } from '../../adapters/i18n';
@@ -11,9 +12,10 @@ import { sendCommand } from '../../adapters/messages';
 import { StageBadge } from '../../ui/StageBadge';
 import { useAppState } from '../../ui/useAppState';
 
-type ListCategoryId = Exclude<CategoryId, 'personal'>;
+/** Every category with a card. `personal` is shown as "Your sites" instead. */
+type CardCategoryId = Exclude<CategoryId, 'personal'>;
 
-const CARDS: { id: ListCategoryId; name: MessageKey; description: MessageKey }[] = [
+const CARDS: { id: CardCategoryId; name: MessageKey; description: MessageKey }[] = [
   { id: 'adult', name: 'categoryAdultName', description: 'categoryAdultDescription' },
   { id: 'gambling', name: 'categoryGamblingName', description: 'categoryGamblingDescription' },
   { id: 'social', name: 'categorySocialName', description: 'categorySocialDescription' },
@@ -149,11 +151,10 @@ function RedirectForm(props: {
   );
 }
 
-function CategoryCard(props: { id: ListCategoryId; name: MessageKey; description: MessageKey; state: State; now: number }) {
+function CategoryCard(props: { id: CardCategoryId; name: MessageKey; description: MessageKey; state: State; now: number }) {
   const [open, setOpen] = useState(false);
   const { id, state, now } = props;
   const category = state.categories[id];
-  const available = isCurated(id);
   const stage = stageFor(category, now);
 
   return (
@@ -183,11 +184,10 @@ function CategoryCard(props: { id: ListCategoryId; name: MessageKey; description
               </ul>
             </details>
           )}
+          {!isCurated(id) && <WronglyBlocked id={id} state={state} />}
         </>
-      ) : !available ? (
-        <p>{t('categoryComingSoon')}</p>
       ) : open ? (
-        <CategorySetup id={props.id as CuratedCategoryId} />
+        isCurated(id) ? <CategorySetup id={id} /> : <ListCategorySetup id={id} />
       ) : (
         <button type="button" onClick={() => setOpen(true)}>
           {t('categoryChoose')}
@@ -236,6 +236,70 @@ function CategorySetup({ id }: { id: CuratedCategoryId }) {
         {t('categoryTurnOn')}
       </button>
     </div>
+  );
+}
+
+/** Adult and gambling come from long maintained lists: no checklist, just a reason. */
+function ListCategorySetup({ id }: { id: ListCategoryId }) {
+  const [reason, setReason] = useState('');
+  return (
+    <div>
+      <p>{t('categoryListHint')}</p>
+      <input
+        type="text"
+        placeholder={t('categoryReasonPlaceholder')}
+        value={reason}
+        onInput={(e) => setReason(e.currentTarget.value)}
+      />
+      <button type="button" onClick={() => sendCommand({ type: 'enableCategory', category: id, reason })}>
+        {t('categoryTurnOn')}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Lists make mistakes. Letting a wrongly listed site through is a removal request
+ * (24 hours, then the retype) but never resets the category (D32).
+ */
+function WronglyBlocked({ id, state }: { id: ListCategoryId; state: State }) {
+  const [domain, setDomain] = useState('');
+  const [error, setError] = useState(false);
+  const { exceptions } = state.categories[id];
+
+  async function submit(event: Event) {
+    event.preventDefault();
+    const result = await sendCommand({
+      type: 'requestRemoval',
+      target: { kind: 'exception', category: id, domain },
+      fallbackConfirmText: t('removalFixedSentence'),
+    });
+    setError(!result.ok);
+    if (result.ok) setDomain('');
+  }
+
+  return (
+    <details data-testid={`wrongly-blocked-${id}`}>
+      <summary>{t('wronglyBlockedSummary')}</summary>
+      <p>{t('wronglyBlockedHint')}</p>
+      {exceptions.length > 0 && (
+        <ul>
+          {exceptions.map((e) => (
+            <li key={entryKey(e)}>{t('wronglyBlockedLetThrough', entryKey(e))}</li>
+          ))}
+        </ul>
+      )}
+      <form onSubmit={submit}>
+        <input
+          type="text"
+          placeholder={t('wronglyBlockedPlaceholder')}
+          value={domain}
+          onInput={(e) => setDomain(e.currentTarget.value)}
+        />{' '}
+        <button type="submit">{t('wronglyBlockedRequest')}</button>
+      </form>
+      {error && <p role="alert">{t('wronglyBlockedInvalid')}</p>}
+    </details>
   );
 }
 

@@ -6,3 +6,4 @@ playwright-report/
 .claude/settings.local.json
 spike-data/
 public/spike/
+.cache/

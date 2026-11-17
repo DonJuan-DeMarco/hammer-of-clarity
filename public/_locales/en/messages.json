@@ -83,9 +83,6 @@
   "categoryOn": {
     "message": "On"
   },
-  "categoryComingSoon": {
-    "message": "Coming soon"
-  },
   "categoryPersonalName": {
     "message": "Your sites"
   },
@@ -254,5 +251,32 @@
   },
   "graduationExplain": {
     "message": "Removing a wall here no longer has a waiting period. You will still type your reason."
+  },
+  "categoryListHint": {
+    "message": "Uses a large, maintained public list, so there is nothing to tick. Lists sometimes catch the wrong site; you can let one through later."
+  },
+  "wronglyBlockedSummary": {
+    "message": "A site blocked by mistake?"
+  },
+  "wronglyBlockedHint": {
+    "message": "Ask to let it through. It takes a day and your reason, like any removal, but it never sets this category back."
+  },
+  "wronglyBlockedPlaceholder": {
+    "message": "example.com"
+  },
+  "wronglyBlockedRequest": {
+    "message": "Ask to let it through"
+  },
+  "wronglyBlockedInvalid": {
+    "message": "That is not a site address, or it is already let through."
+  },
+  "wronglyBlockedLetThrough": {
+    "message": "Let through: $SITE$",
+    "placeholders": {
+      "site": {
+        "content": "$1",
+        "example": "example.com"
+      }
+    }
   }
 }

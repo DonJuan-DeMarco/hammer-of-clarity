@@ -1,9 +1,9 @@
 import { browser } from 'wxt/browser';
 import { targetFromUrl } from '../core/domain';
 import { reduce, type Command, type CommandResult } from '../core/reducer';
-import { buildRules } from '../core/rules';
+import { buildRules, enabledRulesets } from '../core/rules';
 import type { State } from '../core/types';
-import { replaceDynamicRules } from '../adapters/dnr';
+import { replaceDynamicRules, setEnabledRulesets } from '../adapters/dnr';
 import { t } from '../adapters/i18n';
 import type { CommandMessage } from '../adapters/messages';
 import { isIncognitoAllowed, onReEnabled, setIncognitoWarning } from '../adapters/lifecycle';
@@ -35,6 +35,7 @@ async function apply(command: Command): Promise<CommandResult> {
 
 /** Makes the browser match the state: blocking rules, and the warning badge while incognito is uncovered. */
 async function syncBrowser(state: State): Promise<void> {
+  await setEnabledRulesets(enabledRulesets(state));
   await replaceDynamicRules(buildRules(state));
   await setIncognitoWarning(!state.incognitoWasAllowed);
 }

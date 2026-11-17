@@ -31,6 +31,33 @@ export async function openPopupFor(context: BrowserContext, worker: Worker, targ
   return popup;
 }
 
+/**
+ * Lets every open removal request's cooldown "pass" by moving its stored times back.
+ * Only stored data changes; the shipped code has no time hooks. A command still in flight
+ * (e.g. the block page logging a visit) can save over the edit, so it's re-applied until it sticks.
+ */
+export async function finishCooldowns(worker: Worker): Promise<void> {
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const stuck = await worker.evaluate(async () => {
+      const chrome = (globalThis as any).chrome;
+      const read = async () => (await chrome.storage.local.get('state:v1'))['state:v1'];
+      const state = await read();
+      const now = Date.now();
+      for (const request of state.removalRequests) {
+        request.createdAt = now - 25 * 60 * 60 * 1000;
+        request.readyAt = now - 60 * 1000;
+        request.expiresAt = now + 23 * 60 * 60 * 1000;
+      }
+      await chrome.storage.local.set({ 'state:v1': state });
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const after = await read();
+      return after.removalRequests.every((r: { readyAt: number }) => r.readyAt <= Date.now());
+    });
+    if (stuck) return;
+  }
+  throw new Error('finishCooldowns: the edit kept being overwritten');
+}
+
 export const test = base.extend<{ context: BrowserContext; serviceWorker: Worker }>({
   context: async ({}, use) => {
     const context = await launchWithExtension();
