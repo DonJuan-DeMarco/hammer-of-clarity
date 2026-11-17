@@ -59,3 +59,45 @@ describe('addBlock', () => {
     expect(result).toEqual({ ok: false, reason: 'invalidDomain' });
   });
 });
+
+describe('enableCategory', () => {
+  it('turns the category on with its reason and starts its stage', () => {
+    const { state, result } = reduce(initialState(), { type: 'enableCategory', category: 'social', reason: ' Doomscrolling ' }, NOW, ids);
+
+    expect(result).toEqual({ ok: true });
+    expect(state.categories.social).toMatchObject({ enabled: true, reason: 'Doomscrolling', stageStartedAt: NOW });
+  });
+
+  it('records LinkedIn as an exception by default', () => {
+    const { state } = reduce(initialState(), { type: 'enableCategory', category: 'social' }, NOW, ids);
+
+    expect(state.categories.social.exceptions).toEqual([{ domain: 'linkedin.com', addedAt: NOW }]);
+  });
+
+  it('records exactly the unticked sites, keeping their paths, and ignores unknown ones', () => {
+    const { state } = reduce(
+      initialState(),
+      { type: 'enableCategory', category: 'short-video', excluded: ['instagram.com/reel', 'nope.com'] },
+      NOW,
+      ids,
+    );
+
+    expect(state.categories['short-video'].exceptions).toEqual([
+      { domain: 'instagram.com', pathPrefix: '/reel', addedAt: NOW },
+    ]);
+  });
+
+  it('does nothing when the category is already on', () => {
+    const on = reduce(initialState(), { type: 'enableCategory', category: 'social' }, NOW, ids).state;
+    const again = reduce(on, { type: 'enableCategory', category: 'social', excluded: [] }, NOW + 1, ids);
+
+    expect(again.result).toEqual({ ok: false, reason: 'alreadyEnabled' });
+    expect(again.state).toBe(on);
+  });
+
+  it('refuses categories that have no sites yet', () => {
+    const { result } = reduce(initialState(), { type: 'enableCategory', category: 'adult' }, NOW, ids);
+
+    expect(result).toEqual({ ok: false, reason: 'notAvailable' });
+  });
+});
