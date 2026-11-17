@@ -1,8 +1,19 @@
 import { exceptionsFor, isCurated } from './categories';
 import { normalizeDomain } from './domain';
 import { cleanRedirect, type RedirectInput } from './redirects';
+import {
+  applyRemoval,
+  confirmTextFor,
+  cooldownFor,
+  dropExpired,
+  newRequest,
+  normalizeConfirmText,
+  requestStatus,
+  resolveTarget,
+  sameTarget,
+} from './removal';
 import { DAY_MS } from './stages';
-import type { Block, CategoryId, State } from './types';
+import type { Block, CategoryId, RemovalTarget, State } from './types';
 
 /** Every change to State is one of these. The UI sends them; only the reducer applies them. */
 export type Command =
@@ -14,10 +25,15 @@ export type Command =
   | ({ type: 'addRedirect' } & RedirectInput)
   | ({ type: 'updateRedirect'; id: string } & RedirectInput)
   | { type: 'removeRedirect'; id: string }
-  | { type: 'recordAttempt'; category: CategoryId };
+  | { type: 'recordAttempt'; category: CategoryId }
+  /** `fallbackConfirmText`: the fixed sentence in the user's language, used when there's no reason (D23). */
+  | { type: 'requestRemoval'; target: RemovalTarget; fallbackConfirmText: string }
+  | { type: 'cancelRemoval'; id: string }
+  | { type: 'confirmRemoval'; id: string; text: string }
+  | { type: 'expireRemovals' };
 
 export type CommandResult =
-  | { ok: true; blockId?: string }
+  | { ok: true; blockId?: string; requestId?: string }
   | {
       ok: false;
       reason:
@@ -27,7 +43,10 @@ export type CommandResult =
         | 'notAvailable'
         | 'invalidRedirect'
         | 'lastRedirect'
-        | 'notFound';
+        | 'notFound'
+        | 'invalidRequest'
+        | 'notReady'
+        | 'wrongText';
     };
 
 /** Attempts are kept this long, only to decide graduation (D24). Never shown. */
@@ -40,8 +59,39 @@ type Outcome = { state: State; result: CommandResult };
 const defaultIds: IdGenerator = () => crypto.randomUUID();
 
 /** Pure: (state, command, now) → new state. Returns the same state object when nothing changes. */
-export function reduce(state: State, command: Command, now: number, newId: IdGenerator = defaultIds): Outcome {
+export function reduce(original: State, command: Command, now: number, newId: IdGenerator = defaultIds): Outcome {
+  // Expired removal requests vanish on the next write, whatever it is.
+  const state = dropExpired(original, now);
   switch (command.type) {
+    case 'expireRemovals':
+      return { state, result: { ok: true } };
+    case 'requestRemoval': {
+      const target = resolveTarget(state, command.target);
+      if (!target) return fail(state, 'notFound');
+      const existing = state.removalRequests.find((r) => sameTarget(r.target, target));
+      if (existing) return { state, result: { ok: true, requestId: existing.id } };
+      const confirmText = confirmTextFor(state, target, command.fallbackConfirmText);
+      if (!confirmText) return fail(state, 'invalidRequest');
+      const request = newRequest(newId(), target, now, confirmText, cooldownFor(target));
+      return {
+        state: { ...state, removalRequests: [...state.removalRequests, request] },
+        result: { ok: true, requestId: request.id },
+      };
+    }
+    case 'cancelRemoval': {
+      if (!state.removalRequests.some((r) => r.id === command.id)) return fail(state, 'notFound');
+      return { state: { ...state, removalRequests: state.removalRequests.filter((r) => r.id !== command.id) }, result: { ok: true } };
+    }
+    case 'confirmRemoval': {
+      const request = state.removalRequests.find((r) => r.id === command.id);
+      if (!request) return fail(state, 'notFound');
+      if (requestStatus(request, now) !== 'confirmable') return fail(state, 'notReady');
+      const remaining = { ...state, removalRequests: state.removalRequests.filter((r) => r.id !== request.id) };
+      // The wall may have gone another way in the meantime; then there's nothing left to remove.
+      if (!resolveTarget(state, request.target)) return { state: remaining, result: { ok: false, reason: 'notFound' } };
+      if (normalizeConfirmText(command.text) !== request.confirmText) return fail(state, 'wrongText');
+      return { state: applyRemoval(remaining, request.target, now), result: { ok: true } };
+    }
     case 'addBlock':
       return addBlock(state, command, now, newId);
     case 'enableCategory':
