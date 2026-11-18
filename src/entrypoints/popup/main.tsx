@@ -6,7 +6,7 @@ import { liveRequests } from '../../core/removal';
 import { stageFor, type Stage } from '../../core/stages';
 import type { CategoryId, State } from '../../core/types';
 import { t, type MessageKey } from '../../adapters/i18n';
-import { isIncognitoAllowed, openIncognitoSetting, openOnboarding } from '../../adapters/lifecycle';
+import { hasFullSiteAccess, isIncognitoAllowed, openExtensionSettings, openOnboarding } from '../../adapters/lifecycle';
 import { sendCommand } from '../../adapters/messages';
 import { loadState } from '../../adapters/storage';
 import { GraduationNotice } from '../../ui/GraduationNotice';
@@ -122,18 +122,20 @@ function Walls() {
 }
 
 /**
- * Checks incognito access on every open (D13) before showing any reset message, so a reset
- * caused by that very check is shown now rather than next time.
+ * Checks incognito access (D13) and site access (1.0.1) on every open, before showing any
+ * reset message, so a reset caused by that very check is shown now rather than next time.
  */
 function Status() {
-  const [checked, setChecked] = useState<{ allowed: boolean; state: State } | null>(null);
+  const [checked, setChecked] = useState<{ allowed: boolean; fullAccess: boolean; state: State } | null>(null);
 
   useEffect(() => {
     void (async () => {
       const allowed = await isIncognitoAllowed();
+      const fullAccess = await hasFullSiteAccess();
       await sendCommand({ type: 'incognitoStatus', allowed });
+      await sendCommand({ type: 'siteAccessStatus', full: fullAccess });
       await sendCommand({ type: 'checkGraduation' });
-      setChecked({ allowed, state: await loadState() });
+      setChecked({ allowed, fullAccess, state: await loadState() });
     })();
   }, []);
 
@@ -145,10 +147,18 @@ function Status() {
           {t('popupFinishSetup')}
         </button>
       )}
+      {!checked.fullAccess && (
+        <section class="incognito-warning" role="alert" data-testid="site-access-warning">
+          <p>{t('siteAccessWarning')}</p>
+          <button type="button" onClick={() => void openExtensionSettings().then(() => window.close())}>
+            {t('siteAccessOpenSetting')}
+          </button>
+        </section>
+      )}
       {!checked.allowed && (
         <section class="incognito-warning" role="alert" data-testid="incognito-warning">
           <p>{t('incognitoWarning')}</p>
-          <button type="button" onClick={() => void openIncognitoSetting().then(() => window.close())}>
+          <button type="button" onClick={() => void openExtensionSettings().then(() => window.close())}>
             {t('incognitoOpenSetting')}
           </button>
         </section>

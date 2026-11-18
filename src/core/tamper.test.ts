@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { reduce, type Command } from './reducer';
 import { DAY_MS } from './stages';
 import { initialState } from './state';
+import { protectionGaps } from './tamper';
 import type { State } from './types';
 
 const T0 = 1_700_000_000_000;
@@ -94,5 +95,47 @@ describe('single-category resets', () => {
 
     expect(done.categories.personal.resetNoticePending).toBe(true);
     expect(done.categories.social.resetNoticePending).toBeUndefined();
+  });
+});
+
+describe('site access', () => {
+  const cases: [string, boolean | undefined, boolean, 'reset' | 'same' | 'remember'][] = [
+    ['first seen full (fresh install, or an update from 1.0.0)', undefined, true, 'remember'],
+    ['limited after it was full', true, false, 'reset'],
+    ['still full', true, true, 'same'],
+    ['still limited', false, false, 'same'],
+    ['restored after being limited', false, true, 'remember'],
+  ];
+
+  it.each(cases)('%s', (_name, was, full, outcome) => {
+    const before = { ...lived(), siteAccessWasFull: was };
+    const { state } = run(before, { type: 'siteAccessStatus', full });
+
+    if (outcome === 'same') expect(state).toBe(before);
+    if (outcome === 'remember') {
+      expect(state.siteAccessWasFull).toBe(true);
+      expect(state.categories).toBe(before.categories);
+    }
+    if (outcome === 'reset') {
+      expect(state.siteAccessWasFull).toBe(false);
+      expect(state.categories.social).toMatchObject({ stageStartedAt: LATER, resetNoticePending: true });
+    }
+  });
+
+  it('a limited start (never seen full) is a warning, not a reset', () => {
+    const before = lived();
+    const { state } = run(before, { type: 'siteAccessStatus', full: false });
+
+    expect(state.categories).toBe(before.categories);
+    expect(state.siteAccessWasFull).toBe(false);
+  });
+});
+
+describe('protectionGaps', () => {
+  it('lists what is leaving a side door open, for the badge and the popup', () => {
+    const base = lived();
+    expect(protectionGaps({ ...base, incognitoWasAllowed: true, siteAccessWasFull: true })).toEqual([]);
+    expect(protectionGaps({ ...base, incognitoWasAllowed: false, siteAccessWasFull: true })).toEqual(['incognito']);
+    expect(protectionGaps({ ...base, incognitoWasAllowed: true, siteAccessWasFull: false })).toEqual(['siteAccess']);
   });
 });

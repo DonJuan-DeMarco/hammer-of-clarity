@@ -22,6 +22,27 @@ export function applyIncognitoStatus(state: State, allowed: boolean, now: number
   return { ...resetAll(state, now), incognitoWasAllowed: false };
 }
 
+/**
+ * Site access (1.0.1): Chrome lets the user limit an extension to "On click" or "On specific
+ * sites". Blocking then silently stops, so limiting it after it was full counts as tamper,
+ * exactly like switching incognito access off.
+ */
+export function applySiteAccessStatus(state: State, full: boolean, now: number): State {
+  if (full) return state.siteAccessWasFull === true ? state : { ...state, siteAccessWasFull: true };
+  if (state.siteAccessWasFull === true) return { ...resetAll(state, now), siteAccessWasFull: false };
+  return state.siteAccessWasFull === false ? state : { ...state, siteAccessWasFull: false };
+}
+
+export type ProtectionGap = 'incognito' | 'siteAccess';
+
+/** Side doors currently open, for the toolbar badge and the popup's warnings. */
+export function protectionGaps(state: State): ProtectionGap[] {
+  const gaps: ProtectionGap[] = [];
+  if (!state.incognitoWasAllowed) gaps.push('incognito');
+  if (state.siteAccessWasFull === false) gaps.push('siteAccess');
+  return gaps;
+}
+
 export function acknowledgeResets(state: State): State {
   if (!Object.values(state.categories).some((c) => c.resetNoticePending)) return state;
   const categories = Object.fromEntries(

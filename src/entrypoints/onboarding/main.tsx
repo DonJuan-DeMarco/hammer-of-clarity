@@ -9,7 +9,7 @@ import { browser } from 'wxt/browser';
 import { CURATED_LISTS, entryKey, isCurated } from '../../core/categories';
 import type { CategoryId, State } from '../../core/types';
 import { t, type MessageKey } from '../../adapters/i18n';
-import { isIncognitoAllowed, openIncognitoSetting } from '../../adapters/lifecycle';
+import { isIncognitoAllowed, openExtensionSettings } from '../../adapters/lifecycle';
 import { sendCommand } from '../../adapters/messages';
 import emblemUrl from '../../assets/emblem.svg';
 import { RedirectsEditor } from '../../ui/RedirectsEditor';
@@ -211,7 +211,7 @@ function Incognito({ onNext }: { onNext: () => void }) {
         ) : (
           <>
             <p class="status-wait">{t('onboardingIncognitoHow')}</p>
-            <button type="button" class="primary" onClick={() => void openIncognitoSetting()}>
+            <button type="button" class="primary" onClick={() => void openExtensionSettings()}>
               {t('incognitoOpenSetting')}
             </button>
           </>
