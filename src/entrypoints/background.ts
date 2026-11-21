@@ -2,6 +2,7 @@ import { browser } from 'wxt/browser';
 import { targetFromUrl } from '../core/domain';
 import { reduce, type Command, type CommandResult } from '../core/reducer';
 import { parseDomainList } from '../core/lists';
+import { blockDecision, blockPagePath } from '../core/navigation';
 import { acceptRefreshedList, listRulePlan } from '../core/refresh';
 import { buildRules, LIST_CATEGORIES, listRulesetRule } from '../core/rules';
 import { blockedSiteDomains, newlyBlockedDomains, originsFor } from '../core/siteData';
@@ -73,6 +74,20 @@ function enqueue<T>(task: () => Promise<T>): Promise<T> {
 const dispatch = (command: Command) => enqueue(() => apply(command));
 
 /**
+ * The safety net (#15): a tab landed on a page that should have been blocked, served out of
+ * sight of the blocking rules (a service worker, the back/forward cache). Send it to the block
+ * page, which logs the visit like any other, and clear the site's service worker so the next
+ * visit is blocked the normal way.
+ */
+async function catchBlockedTab(tabId: number, url: string): Promise<void> {
+  const decision = blockDecision(await loadState(), url);
+  if (!decision) return;
+  const { origin, hostname } = new URL(url);
+  await browser.tabs.update(tabId, { url: browser.runtime.getURL(blockPagePath(decision) as never) });
+  await clearSiteData([origin, ...originsFor(hostname)]);
+}
+
+/**
  * Weekly (D16): download each enabled list, check it, and swap it in. Downloading happens
  * outside the queue so a slow site never holds up a click; installing happens inside it,
  * re-checking that the category and refresh are still on. Any failure keeps what's
@@ -109,6 +124,10 @@ export default defineBackground(() => {
   // and whenever the user changes the extension's site access.
   void checkAccess();
   onSiteAccessChanged(() => void checkAccess());
+  // A tab's address changes when a page is actually shown, however it was served (#15).
+  browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+    if (changeInfo.url) void catchBlockedTab(tabId, changeInfo.url);
+  });
 
   browser.runtime.onInstalled.addListener(async ({ reason }) => {
     // First run: open setup (SPEC §7.6). Updates don't reopen it.
