@@ -2,7 +2,8 @@ import { browser } from 'wxt/browser';
 import { targetFromUrl } from '../core/domain';
 import { reduce, type Command, type CommandResult } from '../core/reducer';
 import { parseDomainList } from '../core/lists';
-import { blockDecision, blockPagePath } from '../core/navigation';
+import { desiredListTables, hostSuffixes, listDecision } from '../core/listTable';
+import { blockDecision, blockPagePath, type BlockDecision } from '../core/navigation';
 import { acceptRefreshedList, listRulePlan } from '../core/refresh';
 import { buildRules, LIST_CATEGORIES, listRulesetRule } from '../core/rules';
 import { blockedSiteDomains, newlyBlockedDomains, originsFor } from '../core/siteData';
@@ -11,6 +12,7 @@ import type { State } from '../core/types';
 import { applyRules, installListRule } from '../adapters/dnr';
 import { downloadList } from '../adapters/lists';
 import { clearSiteData } from '../adapters/siteData';
+import { bundledDomains, clearTable, listedIn, replaceTable, tableMeta } from '../adapters/listTable';
 import { t } from '../adapters/i18n';
 import type { CommandMessage } from '../adapters/messages';
 import {
@@ -47,6 +49,9 @@ async function apply(command: Command): Promise<CommandResult> {
     // Sites that just became blocked lose their service worker and cached pages, so their
     // next page load reaches the network and the blocking rules (#14).
     await clearSiteData(newlyBlockedDomains(state, next).flatMap(originsFor));
+    // The safety net's list table follows the list in use (#16). Not awaited: a fill can take
+    // seconds and must never hold up a click.
+    void syncListTables();
   }
   return result;
 }
@@ -80,11 +85,48 @@ const dispatch = (command: Command) => enqueue(() => apply(command));
  * visit is blocked the normal way.
  */
 async function catchBlockedTab(tabId: number, url: string): Promise<void> {
-  const decision = blockDecision(await loadState(), url);
+  const state = await loadState();
+  const decision = blockDecision(state, url) ?? (await listedDecision(state, url));
   if (!decision) return;
   const { origin, hostname } = new URL(url);
   await browser.tabs.update(tabId, { url: browser.runtime.getURL(blockPagePath(decision) as never) });
   await clearSiteData([origin, ...originsFor(hostname)]);
+}
+
+/** The adult and gambling lists' part of the safety net (#16): a lookup in the on-device table. */
+async function listedDecision(state: State, url: string): Promise<BlockDecision | null> {
+  const inUse = LIST_CATEGORIES.filter((c) => state.categories[c].enabled);
+  if (inUse.length === 0 || !/^https?:/.test(url)) return null;
+  return listDecision(state, url, await listedIn(hostSuffixes(new URL(url).hostname), inUse));
+}
+
+// Table work runs one job at a time, apart from the command queue, so it never delays a click.
+let tableQueue: Promise<unknown> = Promise.resolve();
+function enqueueTable(task: () => Promise<unknown>): Promise<unknown> {
+  tableQueue = tableQueue.then(task).catch((error) => console.warn('[lists] table', error));
+  return tableQueue;
+}
+
+/**
+ * Makes each list table hold the list actually in use (#16): filled from the bundled list,
+ * emptied when the category is off. A refreshed list is written by the refresh itself; if
+ * its table is missing (storage cleared), the bundled list stands in until the next refresh.
+ */
+function syncListTables(): Promise<unknown> {
+  return enqueueTable(async () => {
+    const desired = desiredListTables(await loadState());
+    const meta = await tableMeta();
+    for (const category of LIST_CATEGORIES) {
+      const want = desired[category];
+      const have = meta[category];
+      if (!want) {
+        if (have) await clearTable(category);
+      } else if ((want === 'bundled' && have?.source !== 'bundled') || (want === 'refreshed' && !have)) {
+        const filled = await replaceTable(category, await bundledDomains(category), 'bundled');
+        console.info(`[lists] ${category}: table filled from the bundled list, ${filled.domains} domains in ${filled.fillMs} ms`);
+      }
+    }
+  });
 }
 
 /**
@@ -114,6 +156,11 @@ async function refreshLists(): Promise<void> {
       await installListRule(category, listRulesetRule(category, domains));
       await apply({ type: 'listRefreshed', category, domains: domains.length });
     });
+    // The safety net's table takes the new list too (#16), in the table queue.
+    void enqueueTable(async () => {
+      const state = await loadState();
+      if (state.lists.installed?.[category]) await replaceTable(category, domains, 'refreshed');
+    });
   }
 }
 
@@ -124,6 +171,8 @@ export default defineBackground(() => {
   // and whenever the user changes the extension's site access.
   void checkAccess();
   onSiteAccessChanged(() => void checkAccess());
+  // Fills a missing list table (first run, an update, or storage cleared) in the background.
+  void syncListTables();
   // A tab's address changes when a page is actually shown, however it was served (#15).
   browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
     if (changeInfo.url) void catchBlockedTab(tabId, changeInfo.url);

@@ -38,8 +38,11 @@ export interface SwSite {
   close(): Promise<void>;
 }
 
-/** `host`: 127.0.0.1 by default; use 'localhost' for a second, genuinely different site. */
-export async function startSwSite(host: '127.0.0.1' | 'localhost' = '127.0.0.1'): Promise<SwSite> {
+/**
+ * `host`: 127.0.0.1 by default; 'localhost' for a second, genuinely different site; or a made-up
+ * name the browser is told to resolve to 127.0.0.1 (see list-safety-net.spec.ts).
+ */
+export async function startSwSite(host = '127.0.0.1'): Promise<SwSite> {
   const served: string[] = [];
   const server = http.createServer((req, res) => {
     served.push(req.url ?? '');
