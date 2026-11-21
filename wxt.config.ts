@@ -11,8 +11,9 @@ export default defineConfig({
     description: '__MSG_extDescription__',
     default_locale: 'en',
     minimum_chrome_version: '157',
-    // Each one is used (ticket 13): blocking rules, saved state, the right-click item, timers.
-    permissions: ['declarativeNetRequest', 'storage', 'contextMenus', 'alarms'],
+    // Each one is used (ticket 13): blocking rules, saved state, the right-click item, timers,
+    // and clearing blocked sites' service workers (#14; adds no install or update warning).
+    permissions: ['declarativeNetRequest', 'storage', 'contextMenus', 'alarms', 'browsingData'],
     // Redirect rules only fire on sites the extension has host access to (verified in ticket 01).
     // It also lets the popup read the current tab's address (so no activeTab or tabs) and covers
     // the two list downloads (ticket 06).

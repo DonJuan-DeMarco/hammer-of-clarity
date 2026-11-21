@@ -33,3 +33,33 @@ test('"Hammer this site" lands on the block page even when a service worker serv
   await expect(page).toHaveURL(/^chrome-extension:\/\/[a-z]+\/block\.html\?b=/);
   await expect(page.getByTestId('reason')).toHaveText('Not now');
 });
+
+test('once blocked, the site stays blocked on later visits; other sites keep their service workers (#14)', async ({ context, serviceWorker }) => {
+  const other = await startSwSite();
+  try {
+    const page = await context.newPage();
+    await openUnderServiceWorker(page, `${site.origin}/`);
+    const untouched = await context.newPage();
+    await openUnderServiceWorker(untouched, `${other.origin}/`);
+
+    const popup = await openPopupFor(context, serviceWorker, page);
+    await popup.getByRole('button', { name: 'Hammer this site' }).click();
+    await expect(page).toHaveURL(/block\.html/);
+
+    // The same page, another cached page, and a page the service worker never cached.
+    for (const path of ['/', '/other', '/never-cached']) {
+      const visit = await context.newPage();
+      await visit.goto(`${site.origin}${path}`).catch(() => {});
+      await expect(visit, path).toHaveURL(/block\.html\?b=/);
+    }
+
+    // The other site's service worker still serves its page from cache: the server never sees the request.
+    other.served.length = 0;
+    const again = await context.newPage();
+    await again.goto(`${other.origin}/`);
+    expect(await again.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true);
+    expect(other.served).not.toContain('/');
+  } finally {
+    await other.close();
+  }
+});

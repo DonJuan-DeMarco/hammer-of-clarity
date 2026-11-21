@@ -57,6 +57,11 @@ Free software under the GNU GPL v3. Block lists by OISD and HaGeZi.
 | `storage` | Saves blocked sites, reasons, settings and progress locally. |
 | `contextMenus` | Adds "Block this site" when right-clicking a link. |
 | `alarms` | Runs the weekly list update, the daily progress check and the hourly clean-up of expired removal requests. |
+| `browsingData` (from 1.0.2) | When the user blocks a site, removes that site's service worker and cached pages, and nothing else: no cookies, logins or history. Otherwise a site's service worker can keep serving its pages from the browser's cache, where Chrome's blocking rules never see them, so the block wouldn't work. Checked: adding it shows users no extra permission warning. |
+
+**Paste-ready justification for `browsingData`:**
+
+> Used only to remove the service worker and cached pages of sites the user has chosen to block. Without this, a site's service worker can serve its pages from the browser's cache, bypassing Chrome's blocking rules, so the block would not take effect. Cookies, logins and browsing history are never touched.
 
 No remote code: the downloaded lists are plain text, parsed into blocking rules by the extension's own code.
 

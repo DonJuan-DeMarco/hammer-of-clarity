@@ -8,6 +8,7 @@ import type { CategoryId, State } from '../../core/types';
 import { t, type MessageKey } from '../../adapters/i18n';
 import { hasFullSiteAccess, isIncognitoAllowed, openExtensionSettings, openOnboarding } from '../../adapters/lifecycle';
 import { sendCommand } from '../../adapters/messages';
+import { clearSiteData } from '../../adapters/siteData';
 import { loadState } from '../../adapters/storage';
 import { GraduationNotice } from '../../ui/GraduationNotice';
 import { ResetNotice } from '../../ui/ResetNotice';
@@ -17,6 +18,8 @@ import { useAppState } from '../../ui/useAppState';
 
 interface TargetTab {
   tabId: number;
+  /** The exact origin the page came from, port included. */
+  origin: string | null;
   target: UrlTarget | null;
 }
 
@@ -27,7 +30,8 @@ async function resolveTargetTab(): Promise<TargetTab | null> {
     ? await browser.tabs.get(Number(param))
     : (await browser.tabs.query({ active: true, currentWindow: true }))[0];
   if (tab?.id === undefined) return null;
-  return { tabId: tab.id, target: tab.url ? targetFromUrl(tab.url) : null };
+  const target = tab.url ? targetFromUrl(tab.url) : null;
+  return { tabId: tab.id, origin: target && tab.url ? new URL(tab.url).origin : null, target };
 }
 
 function Popup() {
@@ -51,7 +55,7 @@ function Popup() {
       </main>
     );
   }
-  const { tabId, target } = tab;
+  const { tabId, origin, target } = tab;
 
   async function hammer() {
     const result = await sendCommand({
@@ -61,6 +65,8 @@ function Popup() {
       reason,
     });
     if (result.ok) {
+      // The background clears the site's usual origins; this one may have an unusual port (#14).
+      if (origin) await clearSiteData([origin]);
       // Like Ctrl+F5: skip the cache and the site's service worker, which would otherwise serve
       // the page from the browser's own cache, out of sight of the blocking rules (#13).
       await browser.tabs.reload(tabId, { bypassCache: true });

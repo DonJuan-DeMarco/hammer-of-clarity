@@ -32,11 +32,15 @@ export interface SwSite {
   origin: string;
   /** What a block on this site is keyed on. */
   domain: string;
+  /** Paths the server itself was asked for. A page served from the service worker's cache never appears here. */
+  served: string[];
   close(): Promise<void>;
 }
 
 export async function startSwSite(): Promise<SwSite> {
+  const served: string[] = [];
   const server = http.createServer((req, res) => {
+    served.push(req.url ?? '');
     if (req.url === '/sw.js') {
       res.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' });
       res.end(SERVICE_WORKER);
@@ -50,6 +54,7 @@ export async function startSwSite(): Promise<SwSite> {
   return {
     origin: `http://127.0.0.1:${port}`,
     domain: '127.0.0.1',
+    served,
     close: () => new Promise((resolve) => server.close(() => resolve())),
   };
 }

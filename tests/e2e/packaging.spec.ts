@@ -16,7 +16,7 @@ test('credits and licences are reachable from settings', async ({ context, servi
 test('the package carries the licence, the credits and every icon, and asks only for what it uses', () => {
   const manifest = JSON.parse(readFileSync('.output/chrome-mv3/manifest.json', 'utf8'));
 
-  expect(manifest.permissions.sort()).toEqual(['alarms', 'contextMenus', 'declarativeNetRequest', 'storage']);
+  expect(manifest.permissions.sort()).toEqual(['alarms', 'browsingData', 'contextMenus', 'declarativeNetRequest', 'storage']);
   expect(manifest.host_permissions).toEqual(['<all_urls>']);
   expect(manifest.minimum_chrome_version).toBe('157');
   expect(Object.keys(manifest.icons)).toEqual(['16', '32', '48', '128']);
