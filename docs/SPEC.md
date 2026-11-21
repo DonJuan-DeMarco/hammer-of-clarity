@@ -232,6 +232,14 @@ src/
   - full → limited: reset all, `siteAccessWasFull = false`, red badge, popup warning with a button to the extension's settings page.
   - limited → full: clear the warning (badge stays if incognito is still off). No reset.
 
+### 7.5a Sites with a service worker (D35, 1.0.2)
+
+A site's service worker can serve its pages from the browser's cache, out of sight of the blocking rules. So:
+- **After "Hammer this site"** the tab reloads with `bypassCache` (like Ctrl+F5), after clearing the tab's exact origin.
+- **When a site becomes blocked** (own block, right-click, hand-picked category turned on), its service worker and Cache Storage are removed for `https`/`http` × bare/`www`. On extension update, the same for everything already blocked. Adult and gambling lists are not cleared site by site.
+- **Safety net:** on every `tabs.onUpdated` address change, `blockDecision` (own blocks → hand-picked → adult keyword, honouring exceptions) and then the list table (adult before gambling, honouring let-through exceptions) decide; a hit sends the tab to the same block page the rules use and clears that site's service worker. The block page logs the visit once.
+- **List table:** IndexedDB, one store per list plus a meta store. It holds the bundled list, or the refreshed one when refresh is on and installed, or nothing when the category is off. Filled in chunks in its own queue; trusted only once complete.
+
 ### 7.6 Onboarding (D7, D13, D22)
 
 1. **Welcome:** one sentence on how it works (easy to block, slow to unblock).

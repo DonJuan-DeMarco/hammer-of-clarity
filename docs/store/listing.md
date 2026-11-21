@@ -1,8 +1,14 @@
 # Chrome Web Store listing
 
-Ready to paste into the Chrome Web Store developer dashboard for version **1.0.1**. 1.0.1 is 1.0.0 plus the site-access tamper check (D34).
+Ready to paste into the Chrome Web Store developer dashboard for version **1.0.2**.
 
-- **Package to upload:** `.output/hammer-of-clarity-1.0.1-chrome.zip` (run `pnpm zip`)
+**What's new in 1.0.2** (for the update notes):
+
+> Blocked sites now stay blocked even if they use a service worker to load pages from your browser's cache. Blocking a site reloads it straight to the block page, and the extension clears that site's cached pages so it can't slip back in.
+
+1.0.1 added the site-access tamper check (D34); 1.0.2 adds the service-worker fix (D35) and the `browsingData` permission.
+
+- **Package to upload:** `.output/hammer-of-clarity-1.0.2-chrome.zip` (run `pnpm zip`)
 - **Privacy policy URL:** https://donjuan-demarco.github.io/hammer-of-clarity/privacy.html
 - **Homepage URL:** https://donjuan-demarco.github.io/hammer-of-clarity/
 - **Support URL:** https://github.com/DonJuan-DeMarco/hammer-of-clarity/issues
