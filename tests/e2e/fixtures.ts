@@ -4,10 +4,10 @@ import path from 'node:path';
 const extensionPath = path.resolve('.output/chrome-mv3');
 
 /** Chromium with the built extension loaded. Run `pnpm build` first (`pnpm test:e2e` does). */
-export function launchWithExtension(userDataDir = ''): Promise<BrowserContext> {
+export function launchWithExtension(userDataDir = '', extraArgs: string[] = []): Promise<BrowserContext> {
   return chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
-    args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+    args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`, ...extraArgs],
   });
 }
 
