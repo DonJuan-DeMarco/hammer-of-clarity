@@ -24,7 +24,7 @@
     <main>
       <p class="muted"><a href="./">Hammer of Clarity</a></p>
       <h1>Privacy Policy</h1>
-      <p class="muted">Effective 17 November 2026</p>
+      <p class="muted">Effective 17 November 2026 · updated 21 November 2026 for version 1.0.2</p>
 
       <p>
         Hammer of Clarity is a browser extension that blocks the websites you choose. It runs entirely on your
@@ -67,6 +67,13 @@
         The extension asks for access to all websites only because Chrome requires it to send a blocked page to
         the extension's own block page, and to read the address of the page you are on when you click "Hammer
         this site". It does not read or change page content.
+      </p>
+      <p>
+        From version 1.0.2, when you block a site, the extension removes that site's service worker and cached
+        pages from your browser, so the site can't keep showing pages from its cache. It removes nothing else: no
+        cookies, logins or history, and nothing from sites you haven't blocked. To check whether a page you open
+        should be blocked, it compares the page's address with your lists on your device; addresses are not
+        stored or sent anywhere.
       </p>
 
       <h2>Children</h2>
