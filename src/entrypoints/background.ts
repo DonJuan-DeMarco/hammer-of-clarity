@@ -4,10 +4,12 @@ import { reduce, type Command, type CommandResult } from '../core/reducer';
 import { parseDomainList } from '../core/lists';
 import { acceptRefreshedList, listRulePlan } from '../core/refresh';
 import { buildRules, LIST_CATEGORIES, listRulesetRule } from '../core/rules';
+import { blockedSiteDomains, newlyBlockedDomains, originsFor } from '../core/siteData';
 import { protectionGaps } from '../core/tamper';
 import type { State } from '../core/types';
 import { applyRules, installListRule } from '../adapters/dnr';
 import { downloadList } from '../adapters/lists';
+import { clearSiteData } from '../adapters/siteData';
 import { t } from '../adapters/i18n';
 import type { CommandMessage } from '../adapters/messages';
 import {
@@ -41,6 +43,9 @@ async function apply(command: Command): Promise<CommandResult> {
   if (next !== state) {
     await syncBrowser(next);
     await saveState(next);
+    // Sites that just became blocked lose their service worker and cached pages, so their
+    // next page load reaches the network and the blocking rules (#14).
+    await clearSiteData(newlyBlockedDomains(state, next).flatMap(originsFor));
   }
   return result;
 }
@@ -108,6 +113,8 @@ export default defineBackground(() => {
   browser.runtime.onInstalled.addListener(async ({ reason }) => {
     // First run: open setup (SPEC §7.6). Updates don't reopen it.
     if (reason === 'install') void openOnboarding();
+    // Sites blocked before this version may still have a service worker serving their pages.
+    if (reason === 'update') void loadState().then((state) => clearSiteData(blockedSiteDomains(state).flatMap(originsFor)));
     browser.contextMenus.create({ id: MENU_BLOCK_LINK, title: t('menuBlockLink'), contexts: ['link'] });
     // Defaults in the user's language, so setup can be skipped (Q14). No-op once any redirect exists.
     await dispatch({
