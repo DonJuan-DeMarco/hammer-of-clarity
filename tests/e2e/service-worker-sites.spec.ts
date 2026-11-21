@@ -35,7 +35,7 @@ test('"Hammer this site" lands on the block page even when a service worker serv
 });
 
 test('once blocked, the site stays blocked on later visits; other sites keep their service workers (#14)', async ({ context, serviceWorker }) => {
-  const other = await startSwSite();
+  const other = await startSwSite('localhost');
   try {
     const page = await context.newPage();
     await openUnderServiceWorker(page, `${site.origin}/`);
@@ -62,4 +62,49 @@ test('once blocked, the site stays blocked on later visits; other sites keep the
   } finally {
     await other.close();
   }
+});
+
+/**
+ * Blocks the site with a plain command, as the right-click menu would. The background then clears
+ * the site's usual origins, which don't include the test site's port, so its service worker stays
+ * installed: the hard case for the safety net (#15).
+ */
+async function blockKeepingServiceWorker(context: import('@playwright/test').BrowserContext, worker: import('@playwright/test').Worker, domain: string) {
+  const extensionPage = await context.newPage();
+  await extensionPage.goto(`chrome-extension://${new URL(worker.url()).host}/options.html`);
+  const result = await extensionPage.evaluate(
+    (d) => (globalThis as any).chrome.runtime.sendMessage({ type: 'command', command: { type: 'addBlock', domain: d, reason: 'Caught anyway' } }),
+    domain,
+  );
+  expect(result.ok).toBe(true);
+  await extensionPage.close();
+}
+
+const attemptsLogged = (worker: import('@playwright/test').Worker) =>
+  worker.evaluate(async () => {
+    const { 'state:v1': state } = await (globalThis as any).chrome.storage.local.get('state:v1');
+    return state.attempts.length as number;
+  });
+
+test('the safety net catches a page served by a service worker the rules never saw (#15)', async ({ context, serviceWorker }) => {
+  const first = await context.newPage();
+  await openUnderServiceWorker(first, `${site.origin}/`);
+  await blockKeepingServiceWorker(context, serviceWorker, site.domain);
+
+  const visit = await context.newPage();
+  await visit.goto(`${site.origin}/other`).catch(() => {});
+  await expect(visit).toHaveURL(/block\.html\?b=/);
+  await expect(visit.getByTestId('reason')).toHaveText('Caught anyway');
+  // Counted once, like any other visit to the block page.
+  await expect.poll(() => attemptsLogged(serviceWorker)).toBe(1);
+});
+
+test('the safety net catches the back button returning to a page cached before the block (#15)', async ({ context, serviceWorker }) => {
+  const page = await context.newPage();
+  await openUnderServiceWorker(page, `${site.origin}/`);
+  await page.goto(`${site.origin}/other`);
+  await blockKeepingServiceWorker(context, serviceWorker, site.domain);
+
+  await page.goBack().catch(() => {});
+  await expect(page).toHaveURL(/block\.html\?b=/);
 });

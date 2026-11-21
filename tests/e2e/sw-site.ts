@@ -3,7 +3,8 @@
  * many real sites do (#13). Chrome's blocking rules only see page loads that reach the network,
  * so a site like this is the hard case for blocking.
  *
- * Served on 127.0.0.1 (a secure context, so service workers are allowed) on a free port.
+ * Served on 127.0.0.1 or localhost (secure contexts, so service workers are allowed) on a free port.
+ * A block on a host covers every port on it, so two sites that must stay separate need different hosts.
  * Pages `/` and `/other` are cached at install; any other path is fetched by the service
  * worker itself, which Chrome doesn't treat as a page load either.
  */
@@ -37,7 +38,8 @@ export interface SwSite {
   close(): Promise<void>;
 }
 
-export async function startSwSite(): Promise<SwSite> {
+/** `host`: 127.0.0.1 by default; use 'localhost' for a second, genuinely different site. */
+export async function startSwSite(host: '127.0.0.1' | 'localhost' = '127.0.0.1'): Promise<SwSite> {
   const served: string[] = [];
   const server = http.createServer((req, res) => {
     served.push(req.url ?? '');
@@ -52,8 +54,8 @@ export async function startSwSite(): Promise<SwSite> {
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   const { port } = server.address() as AddressInfo;
   return {
-    origin: `http://127.0.0.1:${port}`,
-    domain: '127.0.0.1',
+    origin: `http://${host}:${port}`,
+    domain: host,
     served,
     close: () => new Promise((resolve) => server.close(() => resolve())),
   };
