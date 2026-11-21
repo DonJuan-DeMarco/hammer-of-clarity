@@ -61,7 +61,9 @@ function Popup() {
       reason,
     });
     if (result.ok) {
-      await browser.tabs.reload(tabId);
+      // Like Ctrl+F5: skip the cache and the site's service worker, which would otherwise serve
+      // the page from the browser's own cache, out of sight of the blocking rules (#13).
+      await browser.tabs.reload(tabId, { bypassCache: true });
       window.close();
     } else {
       setError(result.reason === 'alreadyBlocked' ? 'popupAlreadyBlocked' : 'popupNotAWebsite');
